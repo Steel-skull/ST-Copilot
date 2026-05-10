@@ -102,7 +102,7 @@ Format requirement (Strictly adhere to this JSON structure):
         announce: true,
         notes: [
             '<strong>Stream Support</strong> — Added streaming support so you can see generations in real-time.',
-            '<strong>Reasoning Blocks</strong> — Added support for displaying Reasoning blocks (perfect for DeepSeek-R1 and similar models).',
+            '<strong>Reasoning Blocks</strong> — Added support for displaying Reasoning blocks',
             '<strong>Regex Support</strong> — Clean up formatting and fluff from chat messages included in the context.',
             '<strong>Preset Customization</strong> — Modify QuickPrompts and SystemPrompts presets directly (SystemPrompts handled via session override).',
             '<strong>Favorite Messages</strong> — You can now mark specific messages as Favorites.',

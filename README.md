@@ -124,7 +124,7 @@ A fully integrated, highly detailed theme editor.
 
 ### V2.3.0
 *   **Stream Support:** Added streaming support so you can see generations in real-time.
-*   **Reasoning Blocks:** Added native display support for Reasoning blocks (perfect for thinking models like DeepSeek-R1).
+*   **Reasoning Blocks:** Added native display support for Reasoning blocks.
 *   **Regex Support:** Clean up formatting and fluff from chat messages included in the context using regex.
 *   **Preset Customization:** Added the ability to modify QuickPrompts and SystemPrompts (SystemPrompts are now handled via session overrides).
 *   **Favorite Messages:** You can now mark specific messages as Favorites.
