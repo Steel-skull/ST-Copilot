@@ -1750,6 +1750,7 @@ details.scp-reasoning-block[open] .scp-reasoning-summary::before { transform: ro
 .scp-lb-proposal-add { border-left-color: var(--scp-success); }
 .scp-lb-proposal-edit { border-left-color: var(--scp-accent); }
 .scp-lb-proposal-delete { border-left-color: var(--scp-danger); }
+.scp-lb-proposal-patch { border-left-color: #a78bfa; }
 .scp-lb-proposal-action {
     display: inline-flex; align-items: center; padding: 1px 7px;
     border-radius: 10px; font-size: 9px; font-weight: 700;
@@ -1761,10 +1762,12 @@ details.scp-reasoning-block[open] .scp-reasoning-summary::before { transform: ro
 .scp-lb-proposal-add .scp-lb-proposal-action { background: rgba(76,175,125,0.12); border-color: rgba(76,175,125,0.3); color: var(--scp-success); }
 .scp-lb-proposal-edit .scp-lb-proposal-action { background: var(--scp-accent-bg); border-color: var(--scp-accent-dim); color: var(--scp-accent); }
 .scp-lb-proposal-delete .scp-lb-proposal-action { background: rgba(255,92,92,0.1); border-color: rgba(255,92,92,0.3); color: var(--scp-danger); }
+.scp-lb-proposal-patch .scp-lb-proposal-action { background: rgba(167,139,250,0.1); border-color: rgba(167,139,250,0.3); color: #a78bfa; }
 .scp-lb-proposal-item-info { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
 .scp-lb-proposal-name { font-size: 12px; font-weight: 600; color: var(--scp-text); }
 .scp-lb-proposal-world { font-size: 10px; color: var(--scp-text-muted); }
 .scp-lb-proposal-preview { font-size: 11px; color: var(--scp-text-muted); margin-top: 5px; font-style: italic; line-height: 1.5; }
+.scp-lb-proposal-diff-preview { font-family: var(--scp-mono, monospace); font-style: normal; white-space: pre; overflow-x: auto; font-size: 10.5px; }
 .scp-lb-proposal-triggers { font-size: 10px; color: var(--scp-accent); opacity: 0.7; margin-top: 3px; }
 .scp-lb-proposal-diff-btn {
     font-size: 10px; border-radius: 4px; cursor: pointer;

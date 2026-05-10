@@ -79,7 +79,9 @@
     `When proposing changes, generate a markdown code block tagged exactly as \`lorebook-changes\`.\n` +
     `This block MUST be placed at the very end of your message, after all conversational text.\n\n` +
     `Format requirement (Strictly adhere to this JSON structure):\n` +
-    `{{lorebook_output}}\n` +
+    `{{lorebook_output}}\n\n` +
+    `For partial edits — when only a few lines of an existing entry's \`content\` need changing — you may use the more token-efficient \`lorebook-diff\` format instead. Provide 1–2 unchanged context lines before and after each change so the system can locate it. Do NOT use this format for add or delete actions.\n` +
+    `{{lorebook_diff_output}}\n` +
     `</output_formatting>`;
 
     const LB_FORMAT_BLOCK =
@@ -89,6 +91,18 @@
     '  {"action":"edit","worldName":"BookName","uid":123,"name":"NewName","triggers":["kw"],"content":"New content"},\n' +
     '  {"action":"delete","worldName":"BookName","uid":123,"name":"EntryName"}\n' +
     ']}\n' +
+    '```';
+
+    const LB_DIFF_FORMAT_BLOCK =
+    '```lorebook-diff\n' +
+    '{"worldName":"BookName","uid":123,"name":"EntryName"}\n' +
+    '--- original\n' +
+    '+++ modified\n' +
+    '@@ surrounding context\n' +
+    ' unchanged context line\n' +
+    '-old line to remove\n' +
+    '+new replacement line\n' +
+    ' unchanged context line\n' +
     '```';
 
         
@@ -536,7 +550,8 @@
 
         const prompt = rawPrompt
             .replace('{{active_lorebooks}}', activeBooksStr)
-            .replace('{{lorebook_output}}', LB_FORMAT_BLOCK);
+            .replace('{{lorebook_output}}', LB_FORMAT_BLOCK)
+            .replace('{{lorebook_diff_output}}', LB_DIFF_FORMAT_BLOCK);
             
         return `\n\n<lorebook_management>\n${prompt}\n</lorebook_management>`;
     }
@@ -552,6 +567,31 @@
 
     function stripLBChangesBlock(text) {
         return text.replace(/```lorebook-changes[\s\S]*?```/g, '').trim();
+    }
+
+    function parseDiffBlocksFromText(text) {
+        const re = /```lorebook-diff\s*([\s\S]*?)```/g;
+        const changes = [];
+        let m;
+        while ((m = re.exec(text)) !== null) {
+            try {
+                const raw = m[1].trim();
+                const nl = raw.indexOf('\n');
+                if (nl === -1) continue;
+                const header = JSON.parse(raw.slice(0, nl).trim());
+                const diffText = raw.slice(nl + 1);
+                if (diffText.trim()) changes.push({ ...header, action: 'patch', diff: diffText });
+            } catch (_) {}
+        }
+        return changes.length ? changes : null;
+    }
+
+    function stripDiffBlocks(text) {
+        return text.replace(/```lorebook-diff[\s\S]*?```/g, '').trim();
+    }
+
+    function stripAllChangeBlocks(text) {
+        return stripDiffBlocks(stripLBChangesBlock(text));
     }
 
     async function resolveLBChangeTarget(change) {
@@ -624,7 +664,7 @@
         if (!changes || !changes.length) return;
         try {
             const session = getCurrentSession();
-            const icons = { add: '✚', edit: '✎', delete: '✕' };
+            const icons = { add: '✚', edit: '✎', delete: '✕', patch: '⊕' };
             const statusIcon = statusStr === 'Accepted' ? '✓' : (statusStr === 'Rejected' ? '✕' : '·');
 
             const actionText = statusStr === 'Accepted' ? 'ACCEPTED' :
@@ -712,6 +752,17 @@
                 }
                 delete data.entries[origEntry.uid];
                 console.log(`[${EXT_DISPLAY}] applyLBChanges: DELETE uid=${origEntry.uid} in "${bookName}"`);
+                bookCache[bookName] = data;
+                successfulChanges.push(change);
+            } else if (change.action === 'patch') {
+                if (!origEntry) {
+                    const msg = `Entry not found for patch: "${change.name || change.uid || '?'}" in "${bookName}"`;
+                    toastr.error(`[LB] ${msg}`, EXT_DISPLAY, { timeOut: 10000 });
+                    console.error(`[${EXT_DISPLAY}] applyLBChanges: ${msg}`, change);
+                    continue;
+                }
+                origEntry.content = applyUnifiedDiff(origEntry.content || '', change.diff || '');
+                console.log(`[${EXT_DISPLAY}] applyLBChanges: PATCH uid=${origEntry.uid} in "${bookName}"`);
                 bookCache[bookName] = data;
                 successfulChanges.push(change);
             } else {
@@ -909,6 +960,63 @@
         return `<table class="scp-diff-split-table"><thead><tr><th>Original</th><th>Modified</th></tr></thead><tbody>${rows.join('')}</tbody></table>`;
     }
 
+    // ─── Patch Engine ─────────────────────────────────────────────────────────────
+
+    function _fuzzyFindLines(haystack, needles) {
+        if (!needles.length) return 0;
+        const norm = s => s.trimEnd();
+        outer: for (let i = 0; i <= haystack.length - needles.length; i++) {
+            for (let j = 0; j < needles.length; j++) {
+                if (norm(haystack[i + j]) !== norm(needles[j])) continue outer;
+            }
+            return i;
+        }
+        return -1;
+    }
+
+    function applyUnifiedDiff(originalText, diffText) {
+        if (!diffText?.trim()) return originalText;
+        const lines = (originalText || '').replace(/\r\n/g, '\n').split('\n');
+        const diffLines = diffText.replace(/\r\n/g, '\n').split('\n');
+        const hunks = [];
+        let cur = null;
+        for (const line of diffLines) {
+            if (line.startsWith('--- ') || line.startsWith('+++ ')) continue;
+            if (line.startsWith('@@')) { if (cur) hunks.push(cur); cur = { ops: [] }; continue; }
+            const isCtx = line.startsWith(' ');
+            const isRem = line.startsWith('-');
+            const isAdd = line.startsWith('+');
+            if (isCtx || isRem || isAdd) {
+                if (!cur) cur = { ops: [] };
+                cur.ops.push({ type: isCtx ? 'context' : isRem ? 'remove' : 'add', text: line.slice(1) });
+            }
+        }
+        if (cur) hunks.push(cur);
+        if (!hunks.length) return originalText;
+        let result = [...lines];
+        for (const hunk of hunks) {
+            const anchors = hunk.ops.filter(op => op.type !== 'add').map(op => op.text);
+            if (!anchors.length) {
+                result.push(...hunk.ops.filter(o => o.type === 'add').map(o => o.text));
+                continue;
+            }
+            const pos = _fuzzyFindLines(result, anchors);
+            if (pos === -1) {
+                console.warn(`[${EXT_DISPLAY}] applyUnifiedDiff: hunk context not found`, anchors.slice(0, 3));
+                continue;
+            }
+            const newLines = [];
+            let ri = pos;
+            for (const op of hunk.ops) {
+                if (op.type === 'context') newLines.push(result[ri++]);
+                else if (op.type === 'remove') ri++;
+                else newLines.push(op.text);
+            }
+            result.splice(pos, anchors.length, ...newLines);
+        }
+        return result.join('\n');
+    }
+
     function openDiffModal(change, originalEntry) {
         const modal = document.getElementById('scp-diff-modal');
         if (!modal) return;
@@ -1001,7 +1109,7 @@
         const _initMsg = _initSess.messages.find(m => m.id === msgEl.dataset.id);
         const _savedStates = _initMsg?.lbChangesState || {};
         const itemStates = editableChanges.map((_, i) => _savedStates[i] || 'pending');
-        const actionLabels = { add: '+ Add', edit: '✎ Edit', delete: '✕ Remove' };
+        const actionLabels = { add: '+ Add', edit: '✎ Edit', delete: '✕ Remove', patch: '⊕ Patch' };
 
         const card = document.createElement('div');
         card.className = 'scp-lb-proposal-card';
@@ -1010,7 +1118,7 @@
         const stripAndSave = () => {
             const session = getCurrentSession();
             const msg = session.messages.find(m => m.id === card.dataset.for);
-            if (msg) { msg.content = stripLBChangesBlock(msg.content); saveSettings(); }
+            if (msg) { msg.content = stripAllChangeBlocks(msg.content); saveSettings(); }
         };
 
         const persistState = () => {
@@ -1248,21 +1356,28 @@
             }
 
             // Diff btn
-            if (c.action === 'edit' && c.content) {
+            if ((c.action === 'edit' && c.content) || c.action === 'patch') {
                 const diffBtn = document.createElement('button');
                 diffBtn.className = 'scp-lb-proposal-diff-btn';
                 diffBtn.title = 'View diff'; diffBtn.textContent = '⬚';
                 diffBtn.addEventListener('click', async e => {
                     e.stopPropagation();
                     const change = editableChanges[ci];
-                    const { origEntry, bookName } = await resolveLBChangeTarget(change);
-
-                    if (!origEntry) {
-                        console.warn(`[${EXT_DISPLAY}] Diff: Original entry not found for "${change.name}" in "${change.worldName}"`);
-                        toastr.warning('Could not find original entry to compare against.', EXT_DISPLAY);
+                    const { origEntry } = await resolveLBChangeTarget(change);
+                    if (change.action === 'patch') {
+                        if (!origEntry) {
+                            toastr.warning('Could not find original entry to preview diff.', EXT_DISPLAY);
+                            return;
+                        }
+                        const patched = applyUnifiedDiff(origEntry.content || '', change.diff || '');
+                        openDiffModal({ ...change, content: patched }, origEntry);
+                    } else {
+                        if (!origEntry) {
+                            console.warn(`[${EXT_DISPLAY}] Diff: Original entry not found for "${change.name}" in "${change.worldName}"`);
+                            toastr.warning('Could not find original entry to compare against.', EXT_DISPLAY);
+                        }
+                        openDiffModal(change, origEntry);
                     }
-
-                    openDiffModal(change, origEntry);
                 });
                 itemBtns.appendChild(diffBtn);
             }
@@ -1331,7 +1446,28 @@
 
             // Preview / triggers
             let previewEl = null, triggersEl = null;
-            if (c.content) {
+            if (c.action === 'patch' && c.diff) {
+                previewEl = document.createElement('div');
+                previewEl.className = 'scp-lb-proposal-preview scp-lb-proposal-diff-preview';
+                const diffSnippetLines = c.diff.split('\n')
+                    .filter(l => l.startsWith('-') || l.startsWith('+') || l.startsWith(' '))
+                    .slice(0, 6);
+                const isLong = c.diff.split('\n').length > 6;
+                previewEl.textContent = diffSnippetLines.join('\n') + (isLong ? '\n…' : '');
+                if (isLong) {
+                    let _expanded = false;
+                    previewEl.title = 'Click to expand';
+                    previewEl.style.cursor = 'pointer';
+                    previewEl.addEventListener('click', e => {
+                        e.stopPropagation();
+                        if (window.getSelection()?.toString()) return;
+                        _expanded = !_expanded;
+                        previewEl.textContent = _expanded ? c.diff : diffSnippetLines.join('\n') + '\n…';
+                        previewEl.title = _expanded ? 'Click to collapse' : 'Click to expand';
+                    });
+                }
+                item.appendChild(previewEl);
+            } else if (c.content) {
                 previewEl = document.createElement('div');
                 previewEl.className = 'scp-lb-proposal-preview';
                 const isLong = c.content.length > 120;
@@ -1373,25 +1509,34 @@
                     row.appendChild(lbl); row.appendChild(el); return row;
                 };
 
-                const nameInput = document.createElement('input');
-                nameInput.type = 'text'; nameInput.className = 'scp-lb-pe-input';
-                nameInput.value = c.name || '';
-                nameInput.addEventListener('input', () => { editableChanges[ci].name = nameInput.value; });
-                editPanel.appendChild(mkRow('Name', nameInput));
+                if (c.action === 'patch') {
+                    const diffTa = document.createElement('textarea');
+                    diffTa.className = 'scp-lb-pe-textarea';
+                    diffTa.style.cssText = 'font-family:var(--scp-mono,monospace);min-height:140px;white-space:pre';
+                    diffTa.value = c.diff || '';
+                    diffTa.addEventListener('input', () => { editableChanges[ci].diff = diffTa.value; });
+                    editPanel.appendChild(mkRow('Diff patch <span style="opacity:.6;text-transform:none;letter-spacing:0">(unified format)</span>', diffTa));
+                } else {
+                    const nameInput = document.createElement('input');
+                    nameInput.type = 'text'; nameInput.className = 'scp-lb-pe-input';
+                    nameInput.value = c.name || '';
+                    nameInput.addEventListener('input', () => { editableChanges[ci].name = nameInput.value; });
+                    editPanel.appendChild(mkRow('Name', nameInput));
 
-                const trigInput = document.createElement('input');
-                trigInput.type = 'text'; trigInput.className = 'scp-lb-pe-input';
-                trigInput.value = (c.triggers || []).join(', ');
-                trigInput.addEventListener('input', () => {
-                    editableChanges[ci].triggers = trigInput.value.split(',').map(t => t.trim()).filter(Boolean);
-                });
-                editPanel.appendChild(mkRow('Keys <span style="opacity:.6;text-transform:none;letter-spacing:0">(comma-separated)</span>', trigInput));
+                    const trigInput = document.createElement('input');
+                    trigInput.type = 'text'; trigInput.className = 'scp-lb-pe-input';
+                    trigInput.value = (c.triggers || []).join(', ');
+                    trigInput.addEventListener('input', () => {
+                        editableChanges[ci].triggers = trigInput.value.split(',').map(t => t.trim()).filter(Boolean);
+                    });
+                    editPanel.appendChild(mkRow('Keys <span style="opacity:.6;text-transform:none;letter-spacing:0">(comma-separated)</span>', trigInput));
 
-                const contentTa = document.createElement('textarea');
-                contentTa.className = 'scp-lb-pe-textarea';
-                contentTa.value = c.content || '';
-                contentTa.addEventListener('input', () => { editableChanges[ci].content = contentTa.value; });
-                editPanel.appendChild(mkRow('Content', contentTa));
+                    const contentTa = document.createElement('textarea');
+                    contentTa.className = 'scp-lb-pe-textarea';
+                    contentTa.value = c.content || '';
+                    contentTa.addEventListener('input', () => { editableChanges[ci].content = contentTa.value; });
+                    editPanel.appendChild(mkRow('Content', contentTa));
+                }
 
                 item.appendChild(editPanel);
 
@@ -1410,8 +1555,8 @@
             list.appendChild(item);
             itemEls.push(item);
 
-            // Run initial validation immediately for edit/delete so Apply is never incorrectly enabled
-            if ((c.action === 'edit' || c.action === 'delete') && itemStates[ci] === 'pending') {
+            // Run initial validation immediately for edit/delete/patch so Apply is never incorrectly enabled
+            if ((c.action === 'edit' || c.action === 'delete' || c.action === 'patch') && itemStates[ci] === 'pending') {
                 _validateBookEntry(_selectedBook).catch(() => {});
             }
         });
@@ -3936,11 +4081,13 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
                 const el = createMsgEl(msg, handleCopy, handleEdit, handleDelete, handleMessageRegen);
                 c.appendChild(el);
                 if (msg.role === 'assistant') {
-                    const changes = parseLBChangesFromText(msg.content);
-                    if (changes?.length) {
+                    const _lbChanges = parseLBChangesFromText(msg.content);
+                    const _diffChanges = parseDiffBlocksFromText(msg.content);
+                    const changes = [...(_lbChanges || []), ...(_diffChanges || [])];
+                    if (changes.length) {
                         const contentEl = el.querySelector('.scp-msg-content');
                         if (contentEl) {
-                            const { content } = getDisplayContent(stripLBChangesBlock(msg.content), getSettings());
+                            const { content } = getDisplayContent(stripAllChangeBlocks(msg.content), getSettings());
                             contentEl.innerHTML = renderMarkdown(content);
                             postProcessHTMLBlocks(contentEl);
                         }
@@ -3972,11 +4119,13 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         scrollToBottom();
 
         if (msg.role === 'assistant') {
-            const changes = parseLBChangesFromText(msg.content);
-            if (changes?.length) {
+            const _lbChanges = parseLBChangesFromText(msg.content);
+            const _diffChanges = parseDiffBlocksFromText(msg.content);
+            const changes = [...(_lbChanges || []), ...(_diffChanges || [])];
+            if (changes.length) {
                 const contentEl = el.querySelector('.scp-msg-content');
                 if (contentEl) {
-                    const { content } = getDisplayContent(stripLBChangesBlock(msg.content), getSettings());
+                    const { content } = getDisplayContent(stripAllChangeBlocks(msg.content), getSettings());
                     contentEl.innerHTML = renderMarkdown(content);
                     postProcessHTMLBlocks(contentEl);
                 }
@@ -4145,9 +4294,11 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
             let displayString = textToRender;
 
             if (msg.role === 'assistant') {
-                const changes = parseLBChangesFromText(textToRender);
-                if (changes?.length) {
-                    displayString = stripLBChangesBlock(textToRender);
+                const _lbChanges = parseLBChangesFromText(textToRender);
+                const _diffChanges = parseDiffBlocksFromText(textToRender);
+                const changes = [...(_lbChanges || []), ...(_diffChanges || [])];
+                if (changes.length) {
+                    displayString = stripAllChangeBlocks(textToRender);
                     renderProposalCard(changes, wrapEl);
                 } else {
                     document.querySelector(`.scp-lb-proposal-card[data-for="${msg.id}"]`)?.remove();
