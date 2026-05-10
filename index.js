@@ -548,10 +548,16 @@
             }
         }
 
-        const prompt = rawPrompt
+        let prompt = rawPrompt
             .replace('{{active_lorebooks}}', activeBooksStr)
             .replace('{{lorebook_output}}', LB_FORMAT_BLOCK)
             .replace('{{lorebook_diff_output}}', LB_DIFF_FORMAT_BLOCK);
+
+        // If the prompt (old saved default or custom) had no {{lorebook_diff_output}} placeholder,
+        // append the diff format instructions so the model always knows about it.
+        if (!rawPrompt.includes('{{lorebook_diff_output}}')) {
+            prompt += `\n\nFor partial edits — when only a few lines of an existing entry's \`content\` need changing — you may use the more token-efficient \`lorebook-diff\` format. Provide 1–2 unchanged context lines before and after each change. Do NOT use for add or delete actions.\n${LB_DIFF_FORMAT_BLOCK}`;
+        }
             
         return `\n\n<lorebook_management>\n${prompt}\n</lorebook_management>`;
     }
