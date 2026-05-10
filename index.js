@@ -767,7 +767,13 @@
                     console.error(`[${EXT_DISPLAY}] applyLBChanges: ${msg}`, change);
                     continue;
                 }
-                origEntry.content = applyUnifiedDiff(origEntry.content || '', change.diff || '');
+                const { result: patched, missedHunks } = applyUnifiedDiff(origEntry.content || '', change.diff || '');
+                if (missedHunks > 0) {
+                    toastr.error(`[LB] Patch failed: ${missedHunks} hunk(s) could not be located in the entry. The context lines in the diff may not match the actual content exactly. Entry was not modified.`, EXT_DISPLAY, { timeOut: 14000 });
+                    console.error(`[${EXT_DISPLAY}] applyLBChanges: PATCH missed ${missedHunks} hunk(s) for uid=${origEntry.uid}`, { diff: change.diff, content: origEntry.content });
+                    continue;
+                }
+                origEntry.content = patched;
                 console.log(`[${EXT_DISPLAY}] applyLBChanges: PATCH uid=${origEntry.uid} in "${bookName}"`);
                 bookCache[bookName] = data;
                 successfulChanges.push(change);
@@ -970,7 +976,7 @@
 
     function _fuzzyFindLines(haystack, needles) {
         if (!needles.length) return 0;
-        const norm = s => s.trimEnd();
+        const norm = s => s.trim();
         outer: for (let i = 0; i <= haystack.length - needles.length; i++) {
             for (let j = 0; j < needles.length; j++) {
                 if (norm(haystack[i + j]) !== norm(needles[j])) continue outer;
@@ -981,7 +987,7 @@
     }
 
     function applyUnifiedDiff(originalText, diffText) {
-        if (!diffText?.trim()) return originalText;
+        if (!diffText?.trim()) return { result: originalText, missedHunks: 0 };
         const lines = (originalText || '').replace(/\r\n/g, '\n').split('\n');
         const diffLines = diffText.replace(/\r\n/g, '\n').split('\n');
         const hunks = [];
@@ -998,29 +1004,83 @@
             }
         }
         if (cur) hunks.push(cur);
-        if (!hunks.length) return originalText;
+        if (!hunks.length) return { result: originalText, missedHunks: 0 };
+
         let result = [...lines];
+        let missedHunks = 0;
+
         for (const hunk of hunks) {
             const anchors = hunk.ops.filter(op => op.type !== 'add').map(op => op.text);
             if (!anchors.length) {
                 result.push(...hunk.ops.filter(o => o.type === 'add').map(o => o.text));
                 continue;
             }
+
+            // ── Strategy 1: line-based match ──────────────────────────────────
             const pos = _fuzzyFindLines(result, anchors);
-            if (pos === -1) {
-                console.warn(`[${EXT_DISPLAY}] applyUnifiedDiff: hunk context not found`, anchors.slice(0, 3));
+            if (pos !== -1) {
+                const newLines = [];
+                let ri = pos;
+                for (const op of hunk.ops) {
+                    if (op.type === 'context') newLines.push(result[ri++]);
+                    else if (op.type === 'remove') ri++;
+                    else newLines.push(op.text);
+                }
+                result.splice(pos, anchors.length, ...newLines);
                 continue;
             }
-            const newLines = [];
-            let ri = pos;
-            for (const op of hunk.ops) {
-                if (op.type === 'context') newLines.push(result[ri++]);
-                else if (op.type === 'remove') ri++;
-                else newLines.push(op.text);
+
+            // ── Strategy 2: substring match (handles single-line paragraphs) ──
+            // Build the "before" text (context + remove lines joined with a space,
+            // since the model may have split a single long line at sentence boundaries)
+            // and the "after" text (context + add lines).
+            const removeOps = hunk.ops.filter(op => op.type === 'remove');
+            if (!removeOps.length) {
+                // Pure insertion with no remove anchor — try inserting after the last context line
+                const ctxLines = hunk.ops.filter(op => op.type === 'context').map(op => op.text);
+                const addLines = hunk.ops.filter(op => op.type === 'add').map(op => op.text);
+                const fullText = result.join('\n');
+                const lastCtx = ctxLines[ctxLines.length - 1]?.trim();
+                if (lastCtx) {
+                    const idx = fullText.indexOf(lastCtx);
+                    if (idx !== -1) {
+                        const insertAt = idx + lastCtx.length;
+                        const newText = fullText.slice(0, insertAt) + '\n' + addLines.join('\n') + fullText.slice(insertAt);
+                        result = newText.split('\n');
+                        continue;
+                    }
+                }
+                missedHunks++;
+                console.warn(`[${EXT_DISPLAY}] applyUnifiedDiff: pure-insert hunk anchor not found`);
+                continue;
             }
-            result.splice(pos, anchors.length, ...newLines);
+
+            // For hunks with removes: join remove lines and find as substring
+            const removedText = removeOps.map(op => op.text).join(' ');
+            const addedText = hunk.ops.filter(op => op.type === 'add').map(op => op.text).join(' ');
+            const fullText = result.join('\n');
+
+            // Try exact substring match on the remove text
+            const subIdx = fullText.indexOf(removedText);
+            if (subIdx !== -1) {
+                result = (fullText.slice(0, subIdx) + addedText + fullText.slice(subIdx + removedText.length)).split('\n');
+                continue;
+            }
+
+            // Try trimmed-whitespace substring match
+            const normFull = fullText.replace(/\s+/g, ' ');
+            const normRemove = removedText.replace(/\s+/g, ' ').trim();
+            const normIdx = normFull.indexOf(normRemove);
+            if (normIdx !== -1) {
+                result = (normFull.slice(0, normIdx) + addedText + normFull.slice(normIdx + normRemove.length)).split('\n');
+                continue;
+            }
+
+            missedHunks++;
+            console.warn(`[${EXT_DISPLAY}] applyUnifiedDiff: hunk not found (line or substring)`, removeOps.map(o => o.text).slice(0, 2));
         }
-        return result.join('\n');
+
+        return { result: result.join('\n'), missedHunks };
     }
 
     function openDiffModal(change, originalEntry) {
@@ -1375,7 +1435,7 @@
                             toastr.warning('Could not find original entry to preview diff.', EXT_DISPLAY);
                             return;
                         }
-                        const patched = applyUnifiedDiff(origEntry.content || '', change.diff || '');
+                        const { result: patched } = applyUnifiedDiff(origEntry.content || '', change.diff || '');
                         openDiffModal({ ...change, content: patched }, origEntry);
                     } else {
                         if (!origEntry) {
