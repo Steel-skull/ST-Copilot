@@ -122,6 +122,20 @@ A fully integrated, highly detailed theme editor.
 
 ## 📜 Changelog History
 
+### V2.3.0
+*   **Stream Support:** Added streaming support so you can see generations in real-time.
+*   **Reasoning Blocks:** Added native display support for Reasoning blocks (perfect for thinking models like DeepSeek-R1).
+*   **Regex Support:** Clean up formatting and fluff from chat messages included in the context using regex.
+*   **Preset Customization:** Added the ability to modify QuickPrompts and SystemPrompts (SystemPrompts are now handled via session overrides).
+*   **Favorite Messages:** You can now mark specific messages as Favorites.
+*   **In-App Changelog:** A new window to easily keep track of updates and features directly within the UI.
+*   Improved and fixed the default prompt used for Lorebook editing.
+*   Fixed a bug where Lorebook entries would incorrectly remain in the context after being disconnected from the chat or character.
+*   Fixed message numbering in the Chat Context Picker (now 0 to N) to properly match ST's native numbering.
+
+<details>
+<summary><b>Previous Updates (v1.7.0 - v1.9.0)</b></summary>
+
 ###  V2.0.0: Massive Update
 The **V2.0.0** update is now live. While this update heavily improves how Copilot handles your lore and context, it also brings a massive wave of highly requested QoL improvements.
 
@@ -145,9 +159,6 @@ The **V2.0.0** update is now live. While this update heavily improves how Copilo
 - Fixed a logic bug where dismissed Lorebook proposals would incorrectly append to the end of the chat.
 - Fixed dialog windows disappearing if the mouse was released outside the window.
 - Fixed the floating icon randomly disappearing on mobile.
-
-<details>
-<summary><b>Previous Updates (v1.7.0 - v1.9.0)</b></summary>
 
 ### V1.9.0
 *   **Integrated Settings Window:** Dedicated settings UI for seamless adjustments.

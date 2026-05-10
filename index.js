@@ -23,73 +23,153 @@
         }
     }
 
-    const DEFAULT_SYSTEM_PROMPT =
-    `<system_prompt>\n` +
-    `<system_role>\n` +
-    `You are "ST-Copilot", an advanced meta-assistant and creative co-writer integrated directly into the SillyTavern frontend. Your purpose is to assist the human user in managing, analyzing, and expanding their current roleplay session. \n` +
-    `</system_role>\n` +
-    `\n` +
-    `<entity_definitions>\n` +
-    `To perform your duties perfectly, you must understand the entities involved in this session:\n` +
-    `- {{user}}: The character/avatar actively controlled by the human user in the roleplay.\n` +
-    `- {{char}}: The primary AI character, persona, or setting of the current roleplay.\n` +
-    `- ST-Copilot (You): The Out-Of-Character (OOC) analytical engine and brainstormer. \n` +
-    `CRITICAL DIRECTIVE: You are ST-Copilot. You are STRICTLY NOT {{char}}. You must never generate roleplay responses, dialogue, or actions on behalf of {{char}} or {{user}}. You exist outside the narrative.\n` +
-    `</entity_definitions>\n` +
-    `\n` +
-    `<persona_configuration>\n` +
-    `You are a professional, friendly, and highly capable creative co-writer.\n` +
-    `- Tone: Conversational, insightful, collaborative, and encouraging. Act as a friendly "Dungeon Master\'s assistant."\n` +
-    `- Focus: Creative brainstorming, plot twists, lore tracking, and resolving writer\'s block.\n` +
-    `- Task: Provide balanced, well-thought-out suggestions that elevate the story\'s quality. You are the ultimate sounding board for the user\'s ideas, offering constructive feedback and multiple narrative options to keep the story flowing naturally.\n` +
-    `</persona_configuration>\n` +
-    `\n` +
-    `<operational_guidelines>\n` +
-    `When the user asks you a question or requests assistance, adhere to the following principles:\n` +
-    `1. Contextual Brilliance: Draw upon the provided chat history and {{char}}\'s traits to give highly relevant, lore-accurate answers.\n` +
-    `2. Creative Brainstorming: Offer imaginative plot twists, analyze character motivations, suggest possible scenarios, or help resolve writer\'s block. Leave room for the user\'s imagination—do not force a single narrative path.\n` +
-    `3. Formatting: Use markdown (bullet points, bold text, etc.) to make your insights readable and engaging.\n` +
-    `</operational_guidelines>\n` +
-    `\n` +
-    `Your ultimate goal is to enhance the user\'s roleplay experience by providing deep OOC insights, tracking lore, and answering questions based on your specific persona configuration.\n` +
-    `</system_prompt>\n`;
+    const DEFAULT_SYSTEM_PROMPT = `<system_prompt>
+<system_role>
+You are "ST-Copilot", an advanced meta-assistant and creative co-writer integrated directly into the SillyTavern frontend. Your purpose is to assist the human user in managing, analyzing, and expanding their current roleplay session. 
+</system_role>
 
-    const DEFAULT_LB_MANAGE_PROMPT = 
-    `<context>\n` +
-    `A Lorebook (or World Info) is a dynamic memory system used in roleplay to store and seamlessly retrieve facts about the world, characters, locations, items, and lore. When specific keywords (\`triggers\`) are mentioned in the chat, the system secretly injects the corresponding \`content\` into the AI's prompt.\n` +
-    `</context>\n\n` +
-    `<system_mechanics>\n` +
-    `After you generate a proposal, a background script extracts your \`lorebook-changes\` block for the user's UI. Once the user makes a decision, the system AUTOMATICALLY DELETES the code block from your message history to save context tokens. \n` +
-    `If you look at the chat history and notice your previous \`lorebook-changes\` blocks are missing, understand that this is intentional system behavior. You successfully delivered them. Do NOT re-generate, repeat, or fix missing blocks from past messages.\n` +
-    `</system_mechanics>\n\n` +
-    `<guidelines>\n` +
-    `1. Authorization Role: You are authorized to PROPOSE Lorebook updates ONLY when explicitly commanded by the user. You do not apply changes directly; the user makes the final decision.\n` +
-    `2. Cognitive Processing & Explanation: Before generating the proposal block, you MUST explain your reasoning in your regular conversational response. Briefly describe what entry you are proposing to add, edit, or delete, and why. \n` +
-    `3. Conversational Flow: Since your code blocks will be deleted later, do not end your conversational text with phrases like "Here is the code block below:". Treat the code block as a detached technical appendix.\n` +
-    `4. Semantic Restrictions: ALWAYS use language indicating a suggestion (e.g., "I propose adding...", "I suggest editing..."). NEVER state that changes have been "applied", "saved", or "made", as you only generate drafts.\n` +
-    `5. Semantic Density of Entries: Write \`content\` that is concise, factual, and information-dense. Avoid fluff to minimize token consumption.\n` +
-    `6. Objective & Timeless Content (CRITICAL): Entries (characters, locations, items, lore, etc.) MUST NOT be tied to the current story progression, plot developments, or recent chat events. Write them as objective, standalone encyclopedic descriptions that exist entirely independently of the ongoing narrative. \n` +
-    `7. Trigger Optimization: Choose \`triggers\` carefully. Use specific nouns, names, or unique phrases. Avoid overly generic words.\n` +
-    `8. Target Definition and Naming Conventions (CRITICAL):\n` +
-    `   - Currently active lorebooks: {{active_lorebooks}}\n` +
-    `   - Modifying Existing: If your target lorebook exists in the active list above, you MUST apply absolute strict string matching. Do not alter spelling, spacing, capitalization, or punctuation.\n` +
-    `   - Creating New: If the context requires a categorization not present in the active list, you are authorized to draft a NEW lorebook. Assign it a concise, logical name.\n` +
-    `</guidelines>\n\n` +
-    `<output_formatting>\n` +
-    `When proposing changes, generate a markdown code block tagged exactly as \`lorebook-changes\`.\n` +
-    `This block MUST be placed at the very end of your message, after all conversational text.\n\n` +
-    `Format requirement (Strictly adhere to this JSON structure):\n` +
-    `{{lorebook_output}}\n` +
-    `</output_formatting>`;
+<entity_definitions>
+To perform your duties perfectly, you must understand the entities involved in this session:
+- {{user}}: The character/avatar actively controlled by the human user in the roleplay.
+- {{char}}: The primary AI character, persona, or setting of the current roleplay.
+- ST-Copilot (You): The Out-Of-Character (OOC) analytical engine and brainstormer. 
+CRITICAL DIRECTIVE: You are ST-Copilot. You are STRICTLY NOT {{char}}. You must never generate roleplay responses, dialogue, or actions on behalf of {{char}} or {{user}}. You exist outside the narrative.
+</entity_definitions>
 
-    const LB_FORMAT_BLOCK =
-    '```lorebook-changes\n' +
-    '{"changes":[\n' +
-    '  {"action":"add","worldName":"BookName","name":"EntryName","triggers":["keyword"],"content":"Entry content"},\n' +
-    '  {"action":"edit","worldName":"BookName","uid":123,"name":"NewName","triggers":["kw"],"content":"New content"},\n' +
-    '  {"action":"delete","worldName":"BookName","uid":123,"name":"EntryName"}\n' +
-    ']}\n' +
-    '```';
+<persona_configuration>
+You are a professional, friendly, and highly capable creative co-writer.
+- Tone: Conversational, insightful, collaborative, and encouraging. Act as a friendly "Dungeon Master's assistant."
+- Focus: Creative brainstorming, plot twists, lore tracking, and resolving writer's block.
+- Task: Provide balanced, well-thought-out suggestions that elevate the story's quality. You are the ultimate sounding board for the user's ideas, offering constructive feedback and multiple narrative options to keep the story flowing naturally.
+</persona_configuration>
+
+<operational_guidelines>
+When the user asks you a question or requests assistance, adhere to the following principles:
+1. Contextual Brilliance: Draw upon the provided chat history and {{char}}'s traits to give highly relevant, lore-accurate answers.
+2. Creative Brainstorming: Offer imaginative plot twists, analyze character motivations, suggest possible scenarios, or help resolve writer's block. Leave room for the user's imagination—do not force a single narrative path.
+3. Formatting: Use markdown (bullet points, bold text, etc.) to make your insights readable and engaging.
+</operational_guidelines>
+
+Your ultimate goal is to enhance the user's roleplay experience by providing deep OOC insights, tracking lore, and answering questions based on your specific persona configuration.
+</system_prompt>`;
+
+    const DEFAULT_LB_MANAGE_PROMPT = `<context>
+A Lorebook (or World Info) is a dynamic memory system used in roleplay to store and seamlessly retrieve facts about the world, characters, locations, items, and lore. When specific keywords (\`triggers\`) are mentioned in the chat, the system secretly injects the corresponding \`content\` into the AI's prompt.
+</context>
+
+<system_mechanics>
+After you generate a proposal, a background script extracts your \`lorebook-changes\` block for the user's UI. Once the user makes a decision, the system AUTOMATICALLY DELETES the code block from your message history to save context tokens. 
+If you look at the chat history and notice your previous \`lorebook-changes\` blocks are missing, understand that this is intentional system behavior. You successfully delivered them. Do NOT re-generate, repeat, or fix missing blocks from past messages.
+</system_mechanics>
+
+<guidelines>
+1. Authorization Role: You are authorized to PROPOSE Lorebook updates ONLY when explicitly commanded by the user. You do not apply changes directly; the user makes the final decision.
+2. Cognitive Processing & Explanation: Before generating the proposal block, you MUST explain your reasoning in your regular conversational response. Briefly describe what entry you are proposing to add, edit, or delete, and why. 
+3. Conversational Flow: Since your code blocks will be deleted later, do not end your conversational text with phrases like "Here is the code block below:". Treat the code block as a detached technical appendix.
+4. Semantic Restrictions: ALWAYS use language indicating a suggestion (e.g., "I propose adding...", "I suggest editing..."). NEVER state that changes have been "applied", "saved", or "made", as you only generate drafts.
+5. Semantic Density of Entries: Write \`content\` that is concise, factual, and information-dense. Avoid fluff to minimize token consumption. Start every \`content\` section with the proper name of the location, character, item, lore, etc being described (e.g., "Greg Thumbhill is...").
+6. Character Morphology & Visuals: When drafting entries for PEOPLE/CHARACTERS, you MUST anchor their physical reality. Always explicitly detail their physical appearance: approximate height, body build/morphology (e.g., wiry, broad-shouldered, petite), facial features, hair and eye color, distinctive physical marks (scars, tattoos, posture), and typical attire. Blend these physical traits seamlessly into the description to provide a concrete, vivid visual reference for the roleplay.
+7. Nomenclature & Anti-Cliché: When inventing names for new characters, locations, or items, you MUST actively avoid statistically overused LLM tropes and generic default names (e.g., Elara, Lyra, Kael, Aric, Seraphina, Aria). "Think thrice" before assigning a name: ensure it is highly original, phonetically distinct, and culturally/linguistically grounded within the specific setting of the roleplay. 
+8. Objective & Timeless Content (CRITICAL): Entries (characters, locations, items, lore, etc.) MUST NOT be tied to the current story progression, plot developments, or recent chat events. Write them as objective, standalone encyclopedic descriptions that exist entirely independently of the ongoing narrative. 
+9. Trigger Optimization: Choose \`triggers\` carefully. Use specific nouns, names, or unique phrases. Avoid overly generic words.
+10. Target Definition and Naming Conventions (CRITICAL):
+   - Currently active lorebooks: {{active_lorebooks}}
+   - Modifying Existing: If your target lorebook exists in the active list above, you MUST apply absolute strict string matching. Do not alter spelling, spacing, capitalization, or punctuation.
+   - Creating New: If the context requires a categorization not present in the active list, you are authorized to draft a NEW lorebook. Assign it a concise, logical name.
+</guidelines>
+
+<output_formatting>
+When proposing changes, generate a markdown code block tagged exactly as \`lorebook-changes\`.
+This block MUST be placed at the very end of your message, after all conversational text.
+
+Format requirement (Strictly adhere to this JSON structure):
+{{lorebook_output}}
+</output_formatting>`;
+
+    const LB_FORMAT_BLOCK = `\`\`\`lorebook-changes
+{"changes":[
+  {"action":"add","worldName":"BookName","name":"EntryName","triggers":["keyword"],"content":"Entry content"},
+  {"action":"edit","worldName":"BookName","uid":123,"name":"NewName","triggers":["kw"],"content":"New content"},
+  {"action":"delete","worldName":"BookName","uid":123,"name":"EntryName"}
+]}
+\`\`\``;
+
+    // ─── Changelog Data ──────────────────────────────────────────────────────────
+    const CHANGELOG = [
+    {
+        version: '2.3.0',
+        date: '5/10/2026',
+        announce: true,
+        notes: [
+            '<strong>Stream Support</strong> — Added streaming support so you can see generations in real-time.',
+            '<strong>Reasoning Blocks</strong> — Added support for displaying Reasoning blocks (perfect for DeepSeek-R1 and similar models).',
+            '<strong>Regex Support</strong> — Clean up formatting and fluff from chat messages included in the context.',
+            '<strong>Preset Customization</strong> — Modify QuickPrompts and SystemPrompts presets directly (SystemPrompts handled via session override).',
+            '<strong>Favorite Messages</strong> — You can now mark specific messages as Favorites.',
+            '<strong>In-app Changelog</strong> — Added a Changelog window to easily track new updates.',
+            '<strong>Fixes & Polish</strong> — Synced chat context picker numbering with ST (0 to N), fixed Lorebook context persistence after disconnection, and improved the default Lorebook edit prompt.'
+        ],
+    },
+    {
+        version: '2.0.0',
+        date: '5/03/2026',
+        announce: false,
+        notes: [
+            '<strong>Messages Payload</strong> — Handpick specific messages from the chat history and feed them directly to the AI.',
+            '<strong>Quick Prompts</strong> — Fully customizable prompt buttons with emoji icons.',
+            '<strong>Ghost Mode</strong> — Copilot can now become semi-transparent and completely click-through.',
+            '<strong>Expanded Context Awareness</strong> — Context now includes Character Note, Example of Dialogue, and respects settings overrides.',
+            '<strong>Temporary Sessions</strong> — Create sessions that automatically delete themselves when you switch.',
+            '<strong>Usage Stats</strong> — A new interactive Statistics window to track your metrics.',
+            '<strong>UI & QoL Enhancements</strong> — Save edited messages without regenerating, mobile responsive improvements, HTML support, and clean connecting lines for lists.'
+        ],
+    },
+    {
+        version: '1.9.0',
+        date: '4/28/2026',
+        announce: false,
+        notes: [
+            '<strong>Integrated Settings Window</strong> — Dedicated settings UI for seamless adjustments.',
+            '<strong>Session-Specific Configuration</strong> — Override global settings for individual sessions.',
+            '<strong>Dynamic Context Scaling</strong> — The CTX slider dynamically adjusts its range based on chat length.',
+            '<strong>Advanced In-Chat Search</strong> — Quickly locate specific information using (Ctrl + F).',
+            '<strong>Theme Portability</strong> — Import and Export custom themes as JSON. Added the new "Dark Sky" preset.'
+        ],
+    },
+    {
+        version: '1.7.2',
+        date: '4/27/2026',
+        announce: false,
+        notes: [
+            '<strong>Comfortable Color Picker</strong> — Choose colors natively without leaving the app.',
+            '<strong>Default Colors</strong> — Individually reset specific colors to the original theme defaults.',
+            '<strong>Resizable edit window</strong> — You can now manually resize the "content" window in the Lorebook Manager.'
+        ],
+    },
+    {
+        version: '1.7.1',
+        date: '4/26/2026',
+        announce: false,
+        notes: [
+            '<strong>Expandable Entry Descriptions</strong> — Click to expand chat entry descriptions.',
+            '<strong>Lorebook Dropdowns</strong> — Individual Lorebook selection dropdowns for each entry proposal.',
+            '<strong>Data Protection</strong> — Added unsaved changes warnings when switching profiles.',
+            '<strong>New Macro</strong> — Added support for {{active_lorebooks}}.'
+        ],
+    },
+    {
+        version: '1.7.0',
+        date: '4/26/2026',
+        announce: false,
+        notes: [
+            '<strong>AI Lorebook Management</strong> — Copilot AI now actively assists in world-building (AI-Edit).',
+            '<strong>Interactive Proposals</strong> — AI generates Proposal Cards to review, edit, or reject changes via a Diff View modal.',
+            '<strong>Lorebook Manager UI</strong> — Added manual overrides, Auto-Keywords, and Active Indicators.',
+            '<strong>String Trimming</strong> — Automatically remove specific tags (like &lt;think&gt; blocks) from AI responses.',
+            '<strong>Persistent Icon</strong> — Option to keep the floating dock icon visible at all times.'
+        ],
+    }
+];
 
         
     // ─── Theme Presets ──────────────────────────────────────────────────────────
@@ -214,6 +294,35 @@
     let _wiPromises = {}; 
     const EMBEDDED_BOOK_KEY = '__char_embedded__';
     let _lastActiveEntries = [];
+    let _regexModule = false;
+
+    async function loadRegexModule() {
+        if (_regexModule !== false) return _regexModule;
+        try {
+            _regexModule = await import('/scripts/extensions/regex/engine.js');
+        } catch (e) {
+            _regexModule = null;
+        }
+        return _regexModule;
+    }
+
+    async function applyRegexIfEnabled(text, isUser, depth) {
+        if (!getEffectiveSettings().applyRegexToContext) return text;
+        try {
+            const mod = await loadRegexModule();
+            if (!mod?.getRegexedString) return text;
+            const placement = isUser
+                ? (mod.regex_placement?.USER_INPUT ?? 1)
+                : (mod.regex_placement?.AI_OUTPUT ?? 2);
+            const params = { isPrompt: true };
+            if (typeof depth === 'number') params.depth = depth;
+            const result = mod.getRegexedString(text, placement, params);
+            const resolved = (result instanceof Promise) ? await result : result;
+            return (typeof resolved === 'string') ? resolved : text;
+        } catch (e) {
+            return text;
+        }
+    }
 
     async function fetchWorldInfoBook(name) {
         if (name === EMBEDDED_BOOK_KEY) return getEmbeddedCharBook();
@@ -431,8 +540,10 @@
         if (!selectedBooks.length && !settings.lorebookAutoKeyword) return '';
 
         const loadedBooks = {};
-        
+        const _activeNamesSet = new Set(getActiveLorebookNames());
+
         await Promise.all(selectedBooks.map(async name => {
+            if (!_activeNamesSet.has(name)) return;
             const data = await fetchWorldInfoBook(name);
             if (data) loadedBooks[name] = data;
         }));
@@ -1079,7 +1190,6 @@
                 <span class="scp-lb-proposal-action">${escHtml(actionLabels[c.action] || c.action || '?')}</span>
                 <span class="scp-lb-proposal-name">${escHtml(c.name || c.originalName || `Entry #${c.uid || '?'}`)}</span>`;
 
-            // ── Inline lorebook dropdown (replaces static "in BookName" span) ──
             const _activeBooks = getActiveLorebookNames();
             const _currentBook = editableChanges[ci].worldName || '';
 
@@ -1104,7 +1214,6 @@
             const worldPanel = document.createElement('div');
             worldPanel.className = 'scp-lb-proposal-world-panel';
 
-            // Track current value separately for "new" lorebook entries
             let _selectedBook = _currentBook;
 
             const buildWorldPanelItems = (items) => {
@@ -1161,7 +1270,6 @@
             };
 
             const openWorldPanel = () => {
-                // Position panel relative to trigger using fixed coords
                 const rect = worldTrigger.getBoundingClientRect();
                 worldPanel.style.top = `${rect.bottom + 4}px`;
                 worldPanel.style.left = `${rect.left}px`;
@@ -1171,13 +1279,11 @@
 
             const _validateBookEntry = async (bookName) => {
                 worldTrigger.classList.add('loading');
-                // Use the exact same resolution as applyLBChanges to guarantee consistency
                 const resolved = await resolveLBChangeTarget({ ...editableChanges[ci], worldName: bookName });
                 worldTrigger.classList.remove('loading');
 
                 const found = !!resolved.origEntry;
 
-                // Fallback may have resolved the entry in a different book — sync the UI
                 if (found && resolved.bookName && resolved.bookName !== bookName) {
                     editableChanges[ci].worldName = resolved.bookName;
                     _selectedBook = resolved.bookName;
@@ -1206,7 +1312,7 @@
                 editableChanges[ci].worldName = name;
                 worldTriggerText.textContent = `in ${getDisplayName(name)}`;
                 worldTrigger.classList.remove('warn');
-                // Update active state in panel
+
                 worldPanel.querySelectorAll('.scp-lb-proposal-world-item').forEach(el => {
                     el.classList.toggle('active', el.dataset.value === name);
                 });
@@ -1217,7 +1323,6 @@
             worldTrigger.addEventListener('click', e => {
                 e.stopPropagation();
                 const isOpen = worldPanel.classList.contains('open');
-                // Close all other world panels
                 document.querySelectorAll('.scp-lb-proposal-world-panel.open').forEach(p => {
                     p.classList.remove('open');
                     p.previousElementSibling?.classList.remove('open');
@@ -1233,7 +1338,6 @@
 
             worldDd.appendChild(worldTrigger);
             worldDd.appendChild(worldPanel);
-            // worldDd is appended after itemHeader — see below
 
             const itemBtns = document.createElement('div');
             itemBtns.className = 'scp-lb-proposal-item-btns';
@@ -1989,7 +2093,15 @@
                 { id: 'qp_d4', label: 'Feelings', icon: '💭', text: 'What is {{char}} likely feeling right now and why?' },
                 { id: 'qp_d5', label: 'Next?', icon: '🎯', text: 'What are the most interesting directions the story could go next?' },
             ],
+            quickPromptSets: {},
+            activeQuickPromptSet: '',
+            promptPresets: {},
             stats: { g:{}, c:{}, ch:{} },
+            changelogAutoShow: true,
+            lastSeenVersion: '',
+            starredMessages: {},
+            forceStreaming: false,
+            applyRegexToContext: true,
         };
         for (const [k, v] of Object.entries(defaults)) {
             if (s[k] === undefined) s[k] = v;
@@ -2338,6 +2450,7 @@
         'connectionSource','connectionProfileId','systemPrompt',
         'includeSystemPrompt','includeAuthorsNote',
         'includeCharacterCard','includeUserPersonality','reasoningTrimStrings',
+        'applyRegexToContext',
     ];
 
     function getSessionOverrides() {
@@ -3013,9 +3126,13 @@
         if (depth > 0 || hasPicked) {
             const slice = getMainChatSlice(depth);
             if (slice.length) {
+                const chatTotal = SillyTavern.getContext().chat?.length ?? 0;
+                const processedSlice = await Promise.all(slice.map(async m => ({
+                    ...m, content: await applyRegexIfEnabled(m.content, m.role === 'user', chatTotal - m.chatIndex - 1),
+                })));
                 const block = hasPicked
-                    ? slice.map(m => `[msg #${m.chatIndex + 1}][${m.name}]: ${m.content}`).join('\n\n')
-                    : slice.map(m => `[${m.name}]: ${m.content}`).join('\n\n');
+                    ? processedSlice.map(m => `[msg #${m.chatIndex}][${m.name}]: ${m.content}`).join('\n\n')
+                    : processedSlice.map(m => `[${m.name}]: ${m.content}`).join('\n\n');
                 const ctxAttr = hasPicked ? `picked_messages="${slice.length}"` : `last_messages="${slice.length}"`;
                 messages.push({
                     role: 'user',
@@ -3074,52 +3191,6 @@
     const _htmlBlockRegistry = new Map();
     let _htmlBlockCounter = 0;
 
-    async function doCallGenerate(session, settings, pendingText) {
-        if (_abortController) _abortController.abort();
-        _abortController = new AbortController();
-        const signal = _abortController.signal;
-        const messages = await assembleMessages(session, settings, pendingText);
-        const ctx = SillyTavern.getContext();
-        try {
-            if (typeof ctx.generateRaw === 'function') {
-                const options = {
-                    prompt: messages,
-                    bypassAll: true,
-                    signal: signal
-                };
-                if (settings.maxTokens) options.responseLength = parseInt(settings.maxTokens) || 2048;
-
-                const result = await ctx.generateRaw(options);
-                if (typeof result === 'string') return result.trim();
-                const r = result;
-                const msg = r?.choices?.[0]?.message;
-                const reasoning = msg?.reasoning || msg?.reasoning_content || null;
-                const content = (msg?.content || r?.choices?.[0]?.text || r?.message?.content || r?.content || '').trim();
-                if (reasoning) return `<think>${reasoning}</think>\n${content}`;
-                return content;
-            }
-            const res = await fetch('/api/backends/chat-completions/generate', {
-                method: 'POST',
-                headers: { ...ctx.getRequestHeaders(), 'Content-Type': 'application/json' },
-                signal,
-                body: JSON.stringify({ messages, max_tokens: parseInt(settings.maxTokens) || 2048, stream: false }),
-            });
-            if (!res.ok) throw new Error(`API error ${res.status}: ${await res.text().catch(() => res.statusText)}`);
-            const data = await res.json();
-            return (data.choices?.[0]?.message?.content || data.output || '').trim();
-        } catch (err) {
-            if (err.name === 'AbortError') return null;
-            throw err;
-        } finally { _abortController = null; }
-    }
-
-    async function callGenerate(session, settings, pendingText) {
-        if (settings.connectionSource === 'profile' && settings.connectionProfileId) {
-            // connectionProfileId now stores the profile *name* for use with /profile slash cmd
-            return withConnectionProfile(settings.connectionProfileId, () => doCallGenerate(session, settings, pendingText));
-        }
-        return doCallGenerate(session, settings, pendingText);
-    }
 
     // ─── SVG Icons ──────────────────────────────────────────────────────────────
 
@@ -3129,7 +3200,7 @@
         trash: `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>`,
         send: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`,
         search: `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`,
-        refresh: `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>`,
+        refresh: `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>`,
         minus: `<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>`,
         x: `<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
         plus: `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`,
@@ -3144,6 +3215,8 @@
         ghost: `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 10h.01M15 10h.01M12 2a8 8 0 0 0-8 8v12l3-3 2.5 2.5L12 19l2.5 2.5L17 19l3 3V10a8 8 0 0 0-8-8z"/></svg>`,
         lightning: `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
         pick: `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="9" y1="10" x2="9" y2="10" stroke-width="3" stroke-linecap="round"/><line x1="12" y1="10" x2="12" y2="10" stroke-width="3" stroke-linecap="round"/><line x1="15" y1="10" x2="15" y2="10" stroke-width="3" stroke-linecap="round"/></svg>`,
+        star: `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
+        starFill: `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
     };
 
     // ─── Quick Prompts ───────────────────────────────────────────────────────────
@@ -3221,6 +3294,380 @@
             }
         };
         setTimeout(() => document.addEventListener('mousedown', onOut, true), 0);
+    }
+
+    // ─── Preset Dropdown (beautiful floating panel) ───────────────────────────────
+
+    let _activePresetPanel = null;
+
+    function openPresetDropdown(triggerEl, groups, onSelect, opts = {}) {
+        // groups: [{ label, items: [{ name, value, preview, badge }] }]
+        const { placeholder = 'Search…', width = 320, emptyText = 'Nothing here' } = opts;
+
+        if (_activePresetPanel) {
+            _activePresetPanel.remove();
+            _activePresetPanel = null;
+            triggerEl.classList.remove('open');
+            return; // toggle close
+        }
+
+        triggerEl.classList.add('open');
+
+        const panel = document.createElement('div');
+        panel.className = 'scp-pdd-panel';
+        panel.style.width = `${width}px`;
+        _activePresetPanel = panel;
+
+        const allItems = groups.flatMap(g => g.items);
+
+        if (allItems.length > 6) {
+            const sw = document.createElement('div');
+            sw.className = 'scp-pdd-search-wrap';
+            const si = document.createElement('input');
+            si.type = 'text'; si.placeholder = placeholder;
+            si.className = 'scp-pdd-search';
+            si.addEventListener('input', () => renderContent(si.value.trim().toLowerCase()));
+            sw.appendChild(si);
+            panel.appendChild(sw);
+            setTimeout(() => si.focus(), 60);
+        }
+
+        const listEl = document.createElement('div');
+        listEl.className = 'scp-pdd-list';
+        panel.appendChild(listEl);
+
+        const renderContent = (q = '') => {
+            listEl.innerHTML = '';
+            let totalShown = 0;
+            groups.forEach(group => {
+                const filtered = q
+                    ? group.items.filter(it => it.name.toLowerCase().includes(q) || (it.preview || '').toLowerCase().includes(q))
+                    : group.items;
+                if (!filtered.length) return;
+                totalShown += filtered.length;
+                if (group.label) {
+                    const hdr = document.createElement('div');
+                    hdr.className = 'scp-pdd-group-label';
+                    hdr.textContent = group.label;
+                    listEl.appendChild(hdr);
+                }
+                filtered.forEach(item => {
+                    const row = document.createElement('div');
+                    row.className = 'scp-pdd-item';
+                    const top = document.createElement('div');
+                    top.className = 'scp-pdd-item-top';
+                    const name = document.createElement('span');
+                    name.className = 'scp-pdd-item-name';
+                    name.textContent = item.name;
+                    top.appendChild(name);
+                    if (item.badge) {
+                        const b = document.createElement('span');
+                        b.className = `scp-pdd-badge scp-pdd-badge--${item.badge}`;
+                        b.textContent = item.badge;
+                        top.appendChild(b);
+                    }
+                    row.appendChild(top);
+                    if (item.preview) {
+                        const prev = document.createElement('div');
+                        prev.className = 'scp-pdd-item-preview';
+                        prev.textContent = item.preview;
+                        row.appendChild(prev);
+                    }
+                    row.addEventListener('click', () => {
+                        onSelect(item.value, item.name, item);
+                        closePresetPanel();
+                    });
+                    listEl.appendChild(row);
+                });
+            });
+            if (!totalShown) {
+                const empty = document.createElement('div');
+                empty.className = 'scp-pdd-empty';
+                empty.textContent = q ? 'No results' : emptyText;
+                listEl.appendChild(empty);
+            }
+        };
+
+        renderContent();
+        document.body.appendChild(panel);
+
+        const rect = triggerEl.getBoundingClientRect();
+        panel.style.cssText += `;position:fixed;z-index:999999;top:${rect.bottom + 5}px;left:${rect.left}px;max-width:calc(100vw - 16px)`;
+        requestAnimationFrame(() => {
+            const pr = panel.getBoundingClientRect();
+            if (pr.right > window.innerWidth - 8) panel.style.left = `${window.innerWidth - pr.width - 8}px`;
+            if (pr.bottom > window.innerHeight - 8) panel.style.top = `${rect.top - pr.height - 5}px`;
+        });
+
+        setTimeout(() => {
+            const onOut = e => {
+                if (!panel.contains(e.target) && e.target !== triggerEl) {
+                    closePresetPanel();
+                    document.removeEventListener('mousedown', onOut, true);
+                }
+            };
+            document.addEventListener('mousedown', onOut, true);
+        }, 0);
+    }
+
+    function closePresetPanel() {
+        if (_activePresetPanel) { _activePresetPanel.remove(); _activePresetPanel = null; }
+        document.querySelectorAll('.scp-pdd-trigger.open, .scp-preset-mgr-trigger.open')
+            .forEach(el => el.classList.remove('open'));
+    }
+
+    // ─── Prompt Preset Manager ────────────────────────────────────────────────────
+
+    function buildPromptPresetManager(containerEl, getTextFn, setTextFn) {
+        if (!containerEl) return;
+        containerEl.innerHTML = '';
+        const s = getSettings();
+        if (!s.promptPresets) s.promptPresets = {};
+
+        let _activeName = '';
+        let _activeSource = ''; // 'profile' | 'custom'
+
+        const bar = document.createElement('div');
+        bar.className = 'scp-preset-mgr-bar';
+
+        // Trigger
+        const trigger = document.createElement('button');
+        trigger.type = 'button';
+        trigger.className = 'scp-preset-mgr-trigger';
+        trigger.innerHTML = `<span class="scp-pmt-label">Select a preset…</span><svg class="scp-pmt-chevron" xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>`;
+
+        const labelEl = trigger.querySelector('.scp-pmt-label');
+
+        const setActive = (name, source) => {
+            _activeName = name;
+            _activeSource = source;
+            labelEl.textContent = name || 'Select a preset…';
+            trigger.classList.toggle('scp-pmt--has-value', !!name);
+            updateBtnStates();
+        };
+
+        const buildGroups = () => {
+            const groups = [];
+            const profileItems = Object.keys(s.profiles || {})
+                .filter(n => s.profiles[n].systemPrompt)
+                .map(n => ({
+                    name: n,
+                    value: s.profiles[n].systemPrompt,
+                    preview: (s.profiles[n].systemPrompt || '').replace(/\s+/g, ' ').slice(0, 80),
+                    badge: 'profile',
+                    _source: 'profile',
+                }));
+            if (profileItems.length) groups.push({ label: 'From Profiles', items: profileItems });
+
+            const customItems = Object.keys(s.promptPresets)
+                .map(n => ({
+                    name: n,
+                    value: s.promptPresets[n],
+                    preview: (s.promptPresets[n] || '').replace(/\s+/g, ' ').slice(0, 80),
+                    badge: 'custom',
+                    _source: 'custom',
+                }));
+            if (customItems.length) groups.push({ label: 'Custom Presets', items: customItems });
+            return groups;
+        };
+
+        trigger.addEventListener('click', () => {
+            const groups = buildGroups();
+            openPresetDropdown(trigger, groups, (value, name, item) => {
+                setTextFn(value);
+                setActive(name, item._source || 'custom');
+            }, { placeholder: 'Search presets…', width: 360, emptyText: 'No presets saved yet' });
+        });
+
+        // Action buttons
+        const mkBtn = (icon, title, cls, cb) => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = `scp-preset-mgr-btn${cls ? ' ' + cls : ''}`;
+            b.title = title;
+            b.innerHTML = `<i class="fa-solid fa-${icon}"></i>`;
+            b.addEventListener('click', cb);
+            return b;
+        };
+
+        const saveBtn = mkBtn('floppy-disk', 'Save preset', '', async () => {
+            if (_activeName && _activeSource === 'custom') {
+                // Overwrite existing custom preset in place
+                s.promptPresets[_activeName] = getTextFn();
+                saveSettings();
+                toastr.success(`Saved preset "${escHtml(_activeName)}"`, EXT_DISPLAY);
+            } else {
+                // Profile presets or no selection: create new
+                const name = await showCustomDialog({ type: 'prompt', title: 'Save Prompt Preset', message: 'Preset name:', placeholder: 'My Preset' });
+                if (!name?.trim()) return;
+                s.promptPresets[name.trim()] = getTextFn();
+                saveSettings();
+                setActive(name.trim(), 'custom');
+                toastr.success(`Saved preset "${escHtml(name.trim())}"`, EXT_DISPLAY);
+            }
+        });
+
+        const renameBtn = mkBtn('pen', 'Rename selected custom preset', '', async () => {
+            if (!_activeName || _activeSource !== 'custom') { toastr.info('Select a custom preset first.', EXT_DISPLAY); return; }
+            const newName = await showCustomDialog({ type: 'prompt', title: 'Rename Preset', message: 'New name:', defaultValue: _activeName });
+            if (!newName?.trim() || newName.trim() === _activeName) return;
+            s.promptPresets[newName.trim()] = s.promptPresets[_activeName];
+            delete s.promptPresets[_activeName];
+            saveSettings();
+            setActive(newName.trim(), 'custom');
+        });
+
+        const deleteBtn = mkBtn('trash', 'Delete selected custom preset', 'danger', async () => {
+            if (!_activeName || _activeSource !== 'custom') { toastr.info('Only custom presets can be deleted.', EXT_DISPLAY); return; }
+            const ok = await showCustomDialog({ type: 'confirm', title: 'Delete Preset', message: `Delete "${_activeName}"?` });
+            if (!ok) return;
+            delete s.promptPresets[_activeName];
+            saveSettings();
+            setActive('', '');
+        });
+
+        const updateBtnStates = () => {
+            const isCustom = !!_activeName && _activeSource === 'custom';
+            renameBtn.disabled = !isCustom;
+            deleteBtn.disabled = !isCustom;
+            renameBtn.style.opacity = isCustom ? '1' : '0.35';
+            deleteBtn.style.opacity = isCustom ? '1' : '0.35';
+        };
+        updateBtnStates();
+
+        bar.appendChild(trigger);
+        bar.appendChild(saveBtn);
+        bar.appendChild(renameBtn);
+        bar.appendChild(deleteBtn);
+        containerEl.appendChild(bar);
+    }
+
+    // ─── Quick Prompt Sets Manager ────────────────────────────────────────────────
+
+    function buildQPSetManager(containerEl, onSetLoaded) {
+        if (!containerEl) return;
+        containerEl.innerHTML = '';
+        const s = getSettings();
+        if (!s.quickPromptSets) s.quickPromptSets = {};
+
+        let _activeName = s.activeQuickPromptSet || '';
+
+        const bar = document.createElement('div');
+        bar.className = 'scp-preset-mgr-bar';
+
+        const trigger = document.createElement('button');
+        trigger.type = 'button';
+        trigger.className = 'scp-preset-mgr-trigger';
+        const getLabel = name => {
+            if (!name) return 'Select a set…';
+            const count = (s.quickPromptSets[name] || []).length;
+            return `${name}  (${count})`;
+        };
+        trigger.innerHTML = `<span class="scp-pmt-label">${escHtml(getLabel(_activeName))}</span><svg class="scp-pmt-chevron" xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>`;
+
+        const labelEl = trigger.querySelector('.scp-pmt-label');
+
+        const setActive = name => {
+            _activeName = name;
+            labelEl.textContent = getLabel(name);
+            trigger.classList.toggle('scp-pmt--has-value', !!name);
+            updateBtnStates();
+        };
+
+        const buildGroups = () => {
+            const items = Object.keys(s.quickPromptSets).map(name => ({
+                name,
+                value: name,
+                preview: `${(s.quickPromptSets[name] || []).length} prompts: ` +
+                    (s.quickPromptSets[name] || []).map(q => `${q.icon || '⚡'} ${q.label}`).join(', ').slice(0, 80),
+                badge: name === s.activeQuickPromptSet ? 'active' : null,
+            }));
+            return [{ label: items.length ? 'Saved Sets' : null, items }];
+        };
+
+        trigger.addEventListener('click', () => {
+            openPresetDropdown(trigger, buildGroups(), (value) => {
+                if (!s.quickPromptSets[value]) return;
+                s.quickPrompts = JSON.parse(JSON.stringify(s.quickPromptSets[value]));
+                s.activeQuickPromptSet = value;
+                saveSettings();
+                setActive(value);
+                renderQuickPromptsBar();
+                if (onSetLoaded) onSetLoaded();
+                toastr.success(`Loaded set "${escHtml(value)}"`, EXT_DISPLAY);
+            }, { placeholder: 'Search sets…', width: 340, emptyText: 'No sets saved yet. Save one below.' });
+        });
+
+        const mkBtn = (icon, title, cls, cb) => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = `scp-preset-mgr-btn${cls ? ' ' + cls : ''}`;
+            b.title = title;
+            b.innerHTML = `<i class="fa-solid fa-${icon}"></i>`;
+            b.addEventListener('click', cb);
+            return b;
+        };
+
+        const saveBtn = mkBtn('floppy-disk', 'Save current prompts to active set (or new)', '', async () => {
+            let name = _activeName;
+            if (!name) {
+                name = await showCustomDialog({ type: 'prompt', title: 'Save Prompt Set', message: 'Set name:', placeholder: 'My Set' });
+                if (!name?.trim()) return;
+                name = name.trim();
+            }
+            s.quickPromptSets[name] = JSON.parse(JSON.stringify(s.quickPrompts));
+            s.activeQuickPromptSet = name;
+            saveSettings();
+            setActive(name);
+            toastr.success(`Saved set "${escHtml(name)}"`, EXT_DISPLAY);
+        });
+
+        const saveAsBtn = mkBtn('plus', 'Save current prompts as a new set', '', async () => {
+            const name = await showCustomDialog({ type: 'prompt', title: 'New Prompt Set', message: 'Set name:', placeholder: 'My New Set' });
+            if (!name?.trim()) return;
+            const n = name.trim();
+            s.quickPromptSets[n] = JSON.parse(JSON.stringify(s.quickPrompts));
+            s.activeQuickPromptSet = n;
+            saveSettings();
+            setActive(n);
+            toastr.success(`Created set "${escHtml(n)}"`, EXT_DISPLAY);
+        });
+
+        const renameBtn = mkBtn('pen', 'Rename selected set', '', async () => {
+            if (!_activeName) { toastr.info('Select a set first.', EXT_DISPLAY); return; }
+            const newName = await showCustomDialog({ type: 'prompt', title: 'Rename Set', message: 'New name:', defaultValue: _activeName });
+            if (!newName?.trim() || newName.trim() === _activeName) return;
+            const n = newName.trim();
+            s.quickPromptSets[n] = s.quickPromptSets[_activeName];
+            delete s.quickPromptSets[_activeName];
+            if (s.activeQuickPromptSet === _activeName) s.activeQuickPromptSet = n;
+            saveSettings();
+            setActive(n);
+        });
+
+        const deleteBtn = mkBtn('trash', 'Delete selected set', 'danger', async () => {
+            if (!_activeName) { toastr.info('Select a set first.', EXT_DISPLAY); return; }
+            const ok = await showCustomDialog({ type: 'confirm', title: 'Delete Set', message: `Delete set "${_activeName}"?` });
+            if (!ok) return;
+            delete s.quickPromptSets[_activeName];
+            if (s.activeQuickPromptSet === _activeName) s.activeQuickPromptSet = '';
+            saveSettings();
+            setActive('');
+        });
+
+        const updateBtnStates = () => {
+            const has = !!_activeName;
+            renameBtn.disabled = !has; renameBtn.style.opacity = has ? '1' : '0.35';
+            deleteBtn.disabled = !has; deleteBtn.style.opacity = has ? '1' : '0.35';
+        };
+        updateBtnStates();
+
+        bar.appendChild(trigger);
+        bar.appendChild(saveBtn);
+        bar.appendChild(saveAsBtn);
+        bar.appendChild(renameBtn);
+        bar.appendChild(deleteBtn);
+        containerEl.appendChild(bar);
     }
 
     function buildQPSettingsUI(container) {
@@ -3400,7 +3847,7 @@
 
             const idxEl = document.createElement('span');
             idxEl.className = 'scp-picker-idx';
-            idxEl.textContent = `#${idx + 1}`;
+            idxEl.textContent = `#${idx}`;
 
             const nameEl = document.createElement('span');
             nameEl.className = 'scp-picker-name';
@@ -3858,9 +4305,15 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         let reasoning = null;
         let displayText = msg.content;
         if (!isUser) {
-            const d = getDisplayContent(msg.content, getSettings());
-            reasoning = d.reasoning;
-            displayText = d.content;
+            if (msg.reasoning !== undefined) {
+                // New path: reasoning stored separately
+                reasoning = msg.reasoning || null;
+            } else {
+                // Backward compat: parse <think> from old saved messages
+                const d = getDisplayContent(msg.content, getSettings());
+                reasoning = d.reasoning;
+                displayText = d.content;
+            }
         }
 
         if (reasoning !== null) {
@@ -3901,6 +4354,20 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         actions.appendChild(makeBtn(I.edit, 'Edit', '', () => onEdit(wrap, msg)));
         actions.appendChild(makeBtn(I.refresh, 'Regen', '', () => onRegen(wrap, msg)));
         actions.appendChild(makeBtn(I.trash, 'Delete', 'scp-msg-btn-danger', () => onDelete(wrap, msg)));
+
+        // Star button
+        const isStarred = isMessageStarred(msg.id);
+        const starBtn = makeBtn(isStarred ? I.starFill : I.star, isStarred ? 'Unstar' : 'Star message', `scp-msg-btn-star${isStarred ? ' starred' : ''}`, () => {
+            const nowStarred = toggleStarMessage(msg.id);
+            starBtn.innerHTML = nowStarred ? I.starFill : I.star;
+            starBtn.title = nowStarred ? 'Unstar' : 'Star message';
+            starBtn.classList.toggle('starred', nowStarred);
+            wrap.classList.toggle('scp-msg-starred', nowStarred);
+            // Refresh favorites panel if open
+            if (document.getElementById('scp-fav-panel')?.style.display !== 'none') renderFavoritesPanel();
+        });
+        actions.appendChild(starBtn);
+        if (isStarred) wrap.classList.add('scp-msg-starred');
 
         body.appendChild(content); body.appendChild(actions); body.appendChild(meta);
         wrap.appendChild(avatar); wrap.appendChild(body);
@@ -4422,31 +4889,159 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
 
     let _generating = false;
 
+
     async function runGenerate(session, userText, addUserMsg = true) {
         if (_generating) return;
         _generating = true;
         const settings = getEffectiveSettings();
         setGeneratingState(true);
-        let userMsg = null;
+
+        let streamMsgId = null;
+        let streamMsgEl = null;
+        let streamContentEl = null;
+        let streamReasoningBlockEl = null;
+        let streamReasoningSummaryEl = null;
+        let streamReasoningContentEl = null;
+        let cursorEl = null;
+        let isStreaming = false;
+        let streamAccumText = '';
+        let streamAccumReasoning = null;
+
+        const cleanupCursor = () => {
+            if (cursorEl && cursorEl.parentNode) cursorEl.remove();
+            cursorEl = null;
+        };
+
+        // Called by callGenerate on every chunk. text/reasoning come separately.
+        const onChunk = (text, reasoning, reasoningMs, reasoningDone) => {
+            isStreaming = true;
+            streamAccumText = text;
+            streamAccumReasoning = reasoning;
+
+            if (!streamMsgId) {
+                const placeholder = { id: genId('msg'), role: 'assistant', content: '', reasoning: null, timestamp: Date.now() };
+                session.messages.push(placeholder);
+                streamMsgId = placeholder.id;
+
+                const c = document.getElementById('scp-messages');
+                c?.querySelector('.scp-empty-state')?.remove();
+                streamMsgEl = createMsgEl(placeholder, handleCopy, handleEdit, handleDelete, handleMessageRegen);
+                c?.appendChild(streamMsgEl);
+                updateMsgCount(session);
+
+                const body = streamMsgEl.querySelector('.scp-msg-body');
+                streamContentEl = streamMsgEl.querySelector('.scp-msg-content');
+
+                // Pre-create reasoning block (hidden until reasoning arrives)
+                streamReasoningBlockEl = document.createElement('details');
+                streamReasoningBlockEl.className = 'scp-reasoning-block';
+                streamReasoningBlockEl.style.display = 'none';
+                streamReasoningSummaryEl = document.createElement('summary');
+                streamReasoningSummaryEl.className = 'scp-reasoning-summary';
+                streamReasoningSummaryEl.textContent = 'Thinking…';
+                streamReasoningContentEl = document.createElement('div');
+                streamReasoningContentEl.className = 'scp-reasoning-content';
+                streamReasoningBlockEl.appendChild(streamReasoningSummaryEl);
+                streamReasoningBlockEl.appendChild(streamReasoningContentEl);
+                if (body) body.insertBefore(streamReasoningBlockEl, streamContentEl);
+
+                cursorEl = document.createElement('span');
+                cursorEl.className = 'scp-stream-cursor';
+
+                const bar = document.getElementById('scp-thinking-bar');
+                const thinkingText = document.getElementById('scp-thinking-text');
+                if (bar) bar.style.display = 'flex';
+                if (thinkingText) thinkingText.textContent = 'Streaming…';
+            }
+
+            if (reasoning && streamReasoningBlockEl) {
+                streamReasoningBlockEl.style.display = '';
+                streamReasoningContentEl.innerHTML = renderMarkdown(reasoning);
+                const secs = reasoningMs ? (reasoningMs / 1000).toFixed(1) : null;
+                streamReasoningSummaryEl.textContent = reasoningDone
+                    ? `Thought for ${secs}s`
+                    : secs ? `Thinking for ${secs}s…` : 'Thinking…';
+            }
+
+            if (streamContentEl) {
+                streamContentEl.innerHTML = renderMarkdown(text);
+                if (text) streamContentEl.appendChild(cursorEl);
+            }
+            scrollToBottom();
+        };
+
         try {
-            if (addUserMsg && userText) { 
-                userMsg = addMessage(session, 'user', userText); 
-                appendMsgEl(userMsg);
+            if (addUserMsg && userText) {
+                appendMsgEl(addMessage(session, 'user', userText));
                 recordStat(_SM.msg);
             }
+
             const fullMessages = await assembleMessages(session, settings, userText);
             const fullPromptText = fullMessages.map(m => m.content).join('\n');
-            const result = await callGenerate(session, settings, userText);
-            if (result === null) return;
-            appendMsgEl(addMessage(session, 'assistant', result));
+
+            const result = await callGenerate(session, settings, userText, onChunk);
+
+            cleanupCursor();
+
+            if (result === null) {
+                if (streamMsgId && isStreaming && streamAccumText) {
+                    // Abort mid-stream: commit whatever was accumulated
+                    const msg = session.messages.find(m => m.id === streamMsgId);
+                    if (msg) { msg.content = streamAccumText; msg.reasoning = streamAccumReasoning || null; saveSettings(); }
+                    if (streamContentEl) { streamContentEl.innerHTML = renderMarkdown(streamAccumText); postProcessHTMLBlocks(streamContentEl); }
+                    if (streamReasoningBlockEl) streamReasoningBlockEl.style.display = streamAccumReasoning ? '' : 'none';
+                    if (streamReasoningBlockEl && streamAccumReasoning) {
+                        streamReasoningContentEl.innerHTML = renderMarkdown(streamAccumReasoning);
+                        streamReasoningSummaryEl.textContent = 'Reasoning';
+                    }
+                } else if (streamMsgId) {
+                    const idx = session.messages.findIndex(m => m.id === streamMsgId);
+                    if (idx >= 0 && !session.messages[idx].content) {
+                        session.messages.splice(idx, 1);
+                        streamMsgEl?.remove();
+                        updateMsgCount(session);
+                    }
+                }
+                return;
+            }
+
+            const { text: fullText, reasoning: fullReasoning } = result;
+
+            if (isStreaming && streamMsgId) {
+                const msg = session.messages.find(m => m.id === streamMsgId);
+                if (msg) { msg.content = fullText; msg.reasoning = fullReasoning || null; }
+                saveSettings();
+
+                const changes = parseLBChangesFromText(fullText);
+                if (changes?.length) {
+                    if (streamContentEl) { streamContentEl.innerHTML = renderMarkdown(stripLBChangesBlock(fullText)); postProcessHTMLBlocks(streamContentEl); }
+                    renderProposalCard(changes, streamMsgEl);
+                } else {
+                    if (streamContentEl) { streamContentEl.innerHTML = renderMarkdown(fullText); postProcessHTMLBlocks(streamContentEl); }
+                }
+
+                // Finalize reasoning block
+                if (fullReasoning && streamReasoningBlockEl) {
+                    streamReasoningBlockEl.style.display = '';
+                    streamReasoningContentEl.innerHTML = renderMarkdown(fullReasoning);
+                    streamReasoningSummaryEl.textContent = 'Reasoning';
+                } else if (!fullReasoning && streamReasoningBlockEl) {
+                    streamReasoningBlockEl.style.display = 'none';
+                }
+            } else {
+                appendMsgEl(addMessage(session, 'assistant', fullText, { reasoning: fullReasoning || null }));
+            }
+
             estimateTokens(fullPromptText).then(n => { if (n > 0) recordStat(_SM.tokIn, n); });
-            if (result) recordStat(_SM.tokOut, Math.ceil(result.length / 3.5));
+            if (fullText) recordStat(_SM.tokOut, Math.ceil(fullText.length / 3.5));
+
         } catch (err) {
+            cleanupCursor();
             console.error(`[${EXT_DISPLAY}]`, err);
             toastr.error(`Generation failed: ${err.message}`, EXT_DISPLAY);
-        } finally { 
-            _generating = false; 
-            setGeneratingState(false); 
+        } finally {
+            _generating = false;
+            setGeneratingState(false);
         }
     }
 
@@ -5010,7 +5605,8 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         const keys = [
             'systemPrompt', 'includeSystemPrompt', 'includeAuthorsNote', 
             'includeCharacterCard', 'includeUserPersonality', 'contextDepth', 
-            'localHistoryLimit', 'connectionSource', 'connectionProfileId', 'maxTokens'
+            'localHistoryLimit', 'connectionSource', 'connectionProfileId', 'maxTokens',
+            'applyRegexToContext'
         ];
         
         for (const k of keys) {
@@ -5029,6 +5625,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
             localHistoryLimit: s.localHistoryLimit,
             connectionSource: s.connectionSource, connectionProfileId: s.connectionProfileId,
             maxTokens: s.maxTokens,
+            applyRegexToContext: s.applyRegexToContext,
         };
         s.activeProfile = name; saveSettings();
     }
@@ -5063,6 +5660,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
                 localHistoryLimit: 50,
                 connectionSource: 'default', connectionProfileId: '',
                 maxTokens: 2048,
+                applyRegexToContext: true,
             };
             s.activeProfile = 'Default';
             saveSettings();
@@ -5406,6 +6004,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
             includeAuthorsNote: 'scp-sp-include-anote',
             includeCharacterCard: 'scp-sp-include-charcard',
             includeUserPersonality: 'scp-sp-include-persona',
+            applyRegexToContext: 'scp-sp-apply-regex',
             contextDepth: 'scp-sp-depth-slider'
         };
         const gId = gIdMap[key];
@@ -5436,6 +6035,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
             includeAuthorsNote: 'scp-sp-ov-include-anote',
             includeCharacterCard: 'scp-sp-ov-include-charcard',
             includeUserPersonality: 'scp-sp-ov-include-persona',
+            applyRegexToContext: 'scp-sp-ov-apply-regex',
             contextDepth: 'scp-sp-ov-depth-slider'
         };
 
@@ -5468,6 +6068,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         setC('scp-include-anote', 'includeAuthorsNote');
         setC('scp-include-charcard', 'includeCharacterCard');
         setC('scp-include-persona', 'includeUserPersonality');
+        setC('scp-apply-regex', 'applyRegexToContext');
         setC('scp-icon-persistent', 'floatingIconPersistent');
         setC('scp-ghost-hotkey-enabled', 'ghostModeHotkeyEnabled');
         setI('scp-hotkey', 'hotkey');
@@ -5476,6 +6077,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         setI('scp-depth-slider', 'contextDepth');
         setI('scp-reasoning-trim', 'reasoningTrimStrings');
         setI('scp-ghost-hotkey', 'ghostModeHotkey');
+        setC('scp-force-streaming', 'forceStreaming');
 
         const opSlider = $('scp-opacity-slider');
         const opVal = $('scp-opacity-val');
@@ -5562,6 +6164,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         bindCheck('scp-include-anote', 'includeAuthorsNote', updCtx);
         bindCheck('scp-include-charcard', 'includeCharacterCard', updCtx);
         bindCheck('scp-include-persona', 'includeUserPersonality', updCtx);
+        bindCheck('scp-apply-regex', 'applyRegexToContext');
         
         bindCheck('scp-icon-persistent', 'floatingIconPersistent', updateIconVisibility);
 
@@ -5602,6 +6205,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         }
         bindCheck('scp-ghost-hotkey-enabled', 'ghostModeHotkeyEnabled', setupGhostHotkey);
         bindInput('scp-ghost-hotkey', 'ghostModeHotkey', null, setupGhostHotkey);
+        bindCheck('scp-force-streaming', 'forceStreaming');
 
         const reasoningTrimEl = $('scp-reasoning-trim');
         if (reasoningTrimEl) {
@@ -5786,9 +6390,21 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         syncSPFromSettings();
         buildThemeEditor(document.getElementById('scp-sp-theme-section'));
         buildQPSettingsUI(document.getElementById('scp-sp-qp-container'));
+        buildQPSetManager(document.getElementById('scp-sp-qp-set-manager'), () => {
+            buildQPSettingsUI(document.getElementById('scp-sp-qp-container'));
+        });
+        buildPromptPresetManager(
+            document.getElementById('scp-sp-prompt-preset-manager'),
+            () => document.getElementById('scp-sp-ov-sysprompt')?.value || '',
+            (text) => {
+                const ta = document.getElementById('scp-sp-ov-sysprompt');
+                if (!ta) return;
+                ta.value = text;
+                ta.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+        );
         overlay.style.display = 'flex';
         updateSessionOverrideIndicator();
-        // Reset to global tab on open
         overlay.querySelectorAll('.scp-sp-tab').forEach(t => t.classList.toggle('active', t.dataset.sptab === 'global'));
         overlay.querySelectorAll('.scp-sp-tab-pane').forEach(p => { p.style.display = p.id === 'scp-sp-pane-global' ? '' : 'none'; });
     }
@@ -5813,6 +6429,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         gC('scp-sp-hotkey-enabled', s.hotkeyEnabled);
         g('scp-sp-hotkey', s.hotkey);
         gC('scp-sp-icon-persistent', s.floatingIconPersistent);
+        gC('scp-sp-changelog-auto', s.changelogAutoShow);
 
         const spOpSlider = document.getElementById('scp-sp-opacity-slider');
         const spOpVal = document.getElementById('scp-sp-opacity-val');
@@ -5825,6 +6442,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         if (spGhOpVal) spGhOpVal.textContent = `${s.ghostModeOpacity ?? 15}%`;
         gC('scp-sp-ghost-hotkey-enabled', s.ghostModeHotkeyEnabled);
         g('scp-sp-ghost-hotkey', s.ghostModeHotkey);
+        gC('scp-sp-force-streaming', s.forceStreaming);
         g('scp-sp-conn-source', s.connectionSource ?? 'default');
         const gCp = document.getElementById('scp-sp-global-profile-group');
         if (gCp) gCp.style.display = s.connectionSource === 'profile' ? '' : 'none';
@@ -5838,6 +6456,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         gC('scp-sp-include-anote', s.includeAuthorsNote);
         gC('scp-sp-include-charcard', s.includeCharacterCard);
         gC('scp-sp-include-persona', s.includeUserPersonality);
+        gC('scp-sp-apply-regex', s.applyRegexToContext);
         g('scp-sp-reasoning-trim', s.reasoningTrimStrings);
         g('scp-sp-sysprompt', s.systemPrompt || DEFAULT_SYSTEM_PROMPT);
         g('scp-sp-lb-manage-prompt', s.lorebookManagePrompt || DEFAULT_LB_MANAGE_PROMPT);
@@ -5869,6 +6488,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         gC('scp-sp-ov-include-anote', eff.includeAuthorsNote);
         gC('scp-sp-ov-include-charcard', eff.includeCharacterCard);
         gC('scp-sp-ov-include-persona', eff.includeUserPersonality);
+        gC('scp-sp-ov-apply-regex', eff.applyRegexToContext);
 
         updateSPOverrideIndicators();
     }
@@ -5907,7 +6527,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         const sel = document.getElementById('scp-sp-profile-select'); if (!sel) return;
         const s = getSettings();
         if (!Object.keys(s.profiles).length) {
-            s.profiles['Default'] = { systemPrompt: DEFAULT_SYSTEM_PROMPT, includeSystemPrompt: true, includeAuthorsNote: true, includeCharacterCard: true, includeUserPersonality: true, contextDepth: 15, localHistoryLimit: 50, connectionSource: 'default', connectionProfileId: '', maxTokens: 2048 };
+            s.profiles['Default'] = { systemPrompt: DEFAULT_SYSTEM_PROMPT, includeSystemPrompt: true, includeAuthorsNote: true, includeCharacterCard: true, includeUserPersonality: true, contextDepth: 15, localHistoryLimit: 50, connectionSource: 'default', connectionProfileId: '', maxTokens: 2048, applyRegexToContext: true };
             s.activeProfile = 'Default'; saveSettings();
         }
         sel.innerHTML = '';
@@ -5955,6 +6575,24 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
                 if (tab.dataset.sptab === 'stats') {
                     renderStatsPane(document.getElementById('scp-sp-stats-container'));
                 }
+                if (tab.dataset.sptab === 'prompts') {
+                    buildQPSetManager(document.getElementById('scp-sp-qp-set-manager'), () => {
+                        buildQPSettingsUI(document.getElementById('scp-sp-qp-container'));
+                    });
+                    buildQPSettingsUI(document.getElementById('scp-sp-qp-container'));
+                }
+                if (tab.dataset.sptab === 'session') {
+                    buildPromptPresetManager(
+                        document.getElementById('scp-sp-prompt-preset-manager'),
+                        () => document.getElementById('scp-sp-ov-sysprompt')?.value || '',
+                        (text) => {
+                            const ta = document.getElementById('scp-sp-ov-sysprompt');
+                            if (!ta) return;
+                            ta.value = text;
+                            ta.dispatchEvent(new Event('input', { bubbles: true }));
+                        }
+                    );
+                }
             });
         });
 
@@ -5975,6 +6613,8 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
                 connectionProfileId:'scp-conn-profile',
                 opacity:'scp-opacity-slider', ghostModeOpacity:'scp-ghost-opacity',
                 ghostModeHotkeyEnabled:'scp-ghost-hotkey-enabled', ghostModeHotkey:'scp-ghost-hotkey',
+                forceStreaming:'scp-force-streaming',
+                applyRegexToContext:'scp-apply-regex',
             }[key]);
             if (stEl) {
                 if (stEl.type === 'checkbox') stEl.checked = !!val;
@@ -6017,6 +6657,8 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         bGInput('scp-sp-hotkey', 'hotkey', null, setupHotkey);
         
         bGCheck('scp-sp-icon-persistent', 'floatingIconPersistent', updateIconVisibility);
+        bGCheck('scp-sp-changelog-auto', 'changelogAutoShow');
+        document.getElementById('scp-sp-open-changelog')?.addEventListener('click', () => { closeSettingsPanel(); openChangelog(); });
 
         // Window opacity (moved from header)
         const spOpSlider = document.getElementById('scp-sp-opacity-slider');
@@ -6034,6 +6676,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         // Ghost mode settings
         bGCheck('scp-sp-ghost-hotkey-enabled', 'ghostModeHotkeyEnabled', setupGhostHotkey);
         bGInput('scp-sp-ghost-hotkey', 'ghostModeHotkey', null, setupGhostHotkey);
+        bGCheck('scp-sp-force-streaming', 'forceStreaming');
 
         const spGhOp = document.getElementById('scp-sp-ghost-opacity');
         const spGhOpVal = document.getElementById('scp-sp-ghost-opacity-val');
@@ -6075,6 +6718,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         bGCheck('scp-sp-include-anote', 'includeAuthorsNote', () => updateMsgCount(getCurrentSession()));
         bGCheck('scp-sp-include-charcard', 'includeCharacterCard', () => updateMsgCount(getCurrentSession()));
         bGCheck('scp-sp-include-persona', 'includeUserPersonality', () => updateMsgCount(getCurrentSession()));
+        bGCheck('scp-sp-apply-regex', 'applyRegexToContext');
         bGInput('scp-sp-reasoning-trim', 'reasoningTrimStrings');
 
         document.getElementById('scp-sp-conn-source')?.addEventListener('change', e => {
@@ -6142,7 +6786,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
             const name = await showCustomDialog({ type: 'prompt', title: 'New Configuration', message: 'Name:', placeholder: 'New Config' });
             if (!name?.trim()) return;
             const n = name.trim(); const s = getSettings();
-            s.profiles[n] = { systemPrompt: DEFAULT_SYSTEM_PROMPT, includeSystemPrompt: true, includeAuthorsNote: true, includeCharacterCard: true, includeUserPersonality: true, contextDepth: 15, localHistoryLimit: 50, connectionSource: 'default', connectionProfileId: '', maxTokens: 2048 };
+            s.profiles[n] = { systemPrompt: DEFAULT_SYSTEM_PROMPT, includeSystemPrompt: true, includeAuthorsNote: true, includeCharacterCard: true, includeUserPersonality: true, contextDepth: 15, localHistoryLimit: 50, connectionSource: 'default', connectionProfileId: '', maxTokens: 2048, applyRegexToContext: true };
             saveSettings(); refreshSPProfilesDropdown(); refreshProfilesDropdown();
             loadProfile(n); syncSPFromSettings(); updateSettingsUI();
             const sel = document.getElementById('scp-sp-profile-select'); if (sel) sel.value = n;
@@ -6248,6 +6892,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         bindOvCheck('scp-sp-ov-include-anote', 'includeAuthorsNote');
         bindOvCheck('scp-sp-ov-include-charcard', 'includeCharacterCard');
         bindOvCheck('scp-sp-ov-include-persona', 'includeUserPersonality');
+        bindOvCheck('scp-sp-ov-apply-regex', 'applyRegexToContext');
 
         // Clear individual override buttons
         overlay.querySelectorAll('.scp-sp-ov-clear[data-ovkey]').forEach(btn => {
@@ -6269,6 +6914,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
                     includeAuthorsNote: ['scp-sp-ov-include-anote'],
                     includeCharacterCard: ['scp-sp-ov-include-charcard'],
                     includeUserPersonality: ['scp-sp-ov-include-persona'],
+                    applyRegexToContext: ['scp-sp-ov-apply-regex'],
                 };
                 (elMap[key] || []).forEach(id => {
                     const el = document.getElementById(id); if (!el) return;
@@ -6451,6 +7097,14 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         // Chat Message Picker
         $('scp-pick-btn')?.addEventListener('click', openChatPicker);
 
+        // Favorites
+        $('scp-fav-btn')?.addEventListener('click', () => {
+            const panel = document.getElementById('scp-fav-panel');
+            if (panel?.style.display === 'none' || !panel?.style.display) openFavoritesPanel();
+            else closeFavoritesPanel();
+        });
+        $('scp-fav-close')?.addEventListener('click', closeFavoritesPanel);
+
         // Quick Prompts toggle
         $('scp-qp-toggle-btn')?.addEventListener('click', () => {
             const s = getSettings();
@@ -6544,6 +7198,8 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
 
     function onChatChanged() {
         _lastChatLen = -1;
+        _wiCache = {};
+        closeFavoritesPanel();
         updateCharBadge();
         refreshSessionDropdown();
         renderSession(getCurrentSession());
@@ -6568,6 +7224,292 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         menu.appendChild(btn);
     }
 
+    // ─── Changelog ───────────────────────────────────────────────────────────────
+
+    function buildChangelogHTML() {
+        const current = CHANGELOG[0];
+        const past = CHANGELOG.slice(1);
+
+        const notesHTML = current.notes
+            .map(n => `<li>${n}</li>`)
+            .join('');
+
+        let historyHTML = '';
+        if (past.length) {
+            historyHTML = `<div class="scp-cl-history">` +
+                past.map(entry => {
+                    const li = (entry.notes || []).map(n => `<li>${n}</li>`).join('');
+                    return `<details class="scp-cl-entry">
+                        <summary class="scp-cl-entry-summary">
+                            <span class="scp-cl-entry-ver">v${escHtml(entry.version)}</span>
+                            <span style="flex:1;opacity:.5">${escHtml(entry.date || '')}</span>
+                        </summary>
+                        <div class="scp-cl-entry-body"><ul>${li}</ul></div>
+                    </details>`;
+                }).join('') +
+                `</div>`;
+        }
+
+        return `<div class="scp-cl-current">
+            <div class="scp-cl-version-badge">✦ Version ${escHtml(current.version)} ${current.date ? '· ' + escHtml(current.date) : ''}</div>
+            <div class="scp-cl-notes"><ul>${notesHTML}</ul></div>
+        </div>${historyHTML}`;
+    }
+
+    function openChangelog() {
+        const modal = document.getElementById('scp-changelog-modal');
+        if (!modal) return;
+        const body = document.getElementById('scp-changelog-body');
+        if (body) body.innerHTML = buildChangelogHTML();
+        modal.style.display = 'flex';
+    }
+
+    function closeChangelog() {
+        const modal = document.getElementById('scp-changelog-modal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    function checkChangelogAutoShow() {
+        const s = getSettings();
+        const current = CHANGELOG[0];
+        const currentVersion = current?.version || '';
+        if (s.changelogAutoShow && current?.announce !== false && s.lastSeenVersion !== currentVersion) {
+            s.lastSeenVersion = currentVersion;
+            saveSettings();
+            setTimeout(openChangelog, 800);
+        } else if (s.lastSeenVersion !== currentVersion) {
+            s.lastSeenVersion = currentVersion;
+            saveSettings();
+        }
+    }
+
+    function setupChangelogListeners() {
+        const modal = document.getElementById('scp-changelog-modal');
+        if (!modal) return;
+        document.getElementById('scp-changelog-close')?.addEventListener('click', closeChangelog);
+        let _mdTarget = null;
+        modal.addEventListener('mousedown', e => { _mdTarget = e.target; });
+        modal.addEventListener('click', e => { if (e.target === modal && _mdTarget === modal) closeChangelog(); });
+    }
+
+    // ─── Favorites ───────────────────────────────────────────────────────────────
+
+    function getSessionFavKey() {
+        const { charId, chatId } = getBindingKey();
+        return `${charId}${chatId}`;
+    }
+
+    function getStarredMessages() {
+        const s = getSettings();
+        const key = getSessionFavKey();
+        if (!s.starredMessages[key]) s.starredMessages[key] = [];
+        return s.starredMessages[key];
+    }
+
+    function isMessageStarred(msgId) {
+        return getStarredMessages().includes(msgId);
+    }
+
+    function toggleStarMessage(msgId) {
+        const s = getSettings();
+        const key = getSessionFavKey();
+        if (!s.starredMessages[key]) s.starredMessages[key] = [];
+        const arr = s.starredMessages[key];
+        const idx = arr.indexOf(msgId);
+        if (idx >= 0) arr.splice(idx, 1);
+        else arr.push(msgId);
+        saveSettings();
+        return idx < 0; // true = now starred
+    }
+
+    function renderFavoritesPanel() {
+        const listEl = document.getElementById('scp-fav-list');
+        const emptyEl = document.getElementById('scp-fav-empty');
+        if (!listEl) return;
+
+        const starredIds = getStarredMessages();
+        const session = getCurrentSession();
+        const starred = session.messages.filter(m => starredIds.includes(m.id));
+
+        // Clear dynamic items
+        listEl.querySelectorAll('.scp-fav-item').forEach(el => el.remove());
+
+        if (!starred.length) {
+            if (emptyEl) emptyEl.style.display = '';
+            return;
+        }
+        if (emptyEl) emptyEl.style.display = 'none';
+
+        const frag = document.createDocumentFragment();
+        starred.forEach(msg => {
+            const item = document.createElement('div');
+            item.className = 'scp-fav-item';
+            item.dataset.msgId = msg.id;
+
+            const raw = msg.content.replace(/```[\s\S]*?```/g, '[code]').replace(/<[^>]+>/g, '').trim();
+            const preview = raw.length > 140 ? raw.slice(0, 140) + '…' : raw;
+            const roleLabel = msg.role === 'user' ? 'User' : 'Copilot';
+            const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            item.innerHTML = `
+                <span class="scp-fav-item-icon">${I.starFill}</span>
+                <div class="scp-fav-item-body">
+                    <div class="scp-fav-item-meta">
+                        <span class="scp-fav-item-role">${escHtml(roleLabel)}</span>
+                        <span>${escHtml(time)}</span>
+                    </div>
+                    <div class="scp-fav-item-text">${escHtml(preview)}</div>
+                </div>
+                <button class="scp-fav-item-remove" title="Remove from starred">✕</button>`;
+
+            item.addEventListener('click', e => {
+                if (e.target.classList.contains('scp-fav-item-remove')) return;
+                closeFavoritesPanel();
+                const msgEl = document.querySelector(`.scp-msg[data-id="${msg.id}"]`);
+                if (!msgEl) return;
+                msgEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                requestAnimationFrame(() => {
+                    msgEl.classList.remove('scp-msg-flash');
+                    void msgEl.offsetWidth;
+                    msgEl.classList.add('scp-msg-flash');
+                    msgEl.addEventListener('animationend', () => msgEl.classList.remove('scp-msg-flash'), { once: true });
+                });
+            });
+
+            item.querySelector('.scp-fav-item-remove').addEventListener('click', e => {
+                e.stopPropagation();
+                toggleStarMessage(msg.id);
+                const msgEl = document.querySelector(`.scp-msg[data-id="${msg.id}"]`);
+                if (msgEl) {
+                    msgEl.classList.remove('scp-msg-starred');
+                    const btn = msgEl.querySelector('.scp-msg-btn-star');
+                    if (btn) { btn.classList.remove('starred'); btn.title = 'Star message'; }
+                }
+                renderFavoritesPanel();
+            });
+
+            frag.appendChild(item);
+        });
+        listEl.appendChild(frag);
+    }
+
+    function openFavoritesPanel() {
+        const panel = document.getElementById('scp-fav-panel');
+        const btn = document.getElementById('scp-fav-btn');
+        if (!panel) return;
+        renderFavoritesPanel();
+        panel.style.display = 'flex';
+        btn?.classList.add('active');
+    }
+
+    function closeFavoritesPanel() {
+        const panel = document.getElementById('scp-fav-panel');
+        const btn = document.getElementById('scp-fav-btn');
+        if (panel) panel.style.display = 'none';
+        btn?.classList.remove('active');
+    }
+
+    // ─── Generation & Streaming ──────────────────────────────────────────────────
+
+    async function doCallGenerate(session, settings, pendingText, onChunk) {
+        const ctx = SillyTavern.getContext();
+        const messages = await assembleMessages(session, settings, pendingText);
+        const maxTokens = parseInt(settings.maxTokens) || 2048;
+
+        const abort = new AbortController();
+        _abortController = abort;
+
+        let profileId = ctx.extensionSettings?.connectionManager?.selectedProfile ?? null;
+
+        if (settings.connectionSource === 'profile' && settings.connectionProfileId) {
+            const profiles = ctx.extensionSettings?.connectionManager?.profiles || [];
+            const found = profiles.find(p =>
+                p.id === settings.connectionProfileId || p.name === settings.connectionProfileId
+            );
+            if (found) profileId = found.id;
+        }
+
+        const service = ctx.ConnectionManagerRequestService;
+        if (!service || typeof service.sendRequest !== 'function') {
+            throw new Error('ConnectionManagerRequestService not available. Please update SillyTavern.');
+        }
+
+        const stStreamToggle = document.getElementById('stream_toggle');
+        const useStream = settings.forceStreaming || !!(stStreamToggle?.checked);
+
+        let asyncGeneratorFn;
+        try {
+            asyncGeneratorFn = await service.sendRequest(profileId, messages, maxTokens, {
+                stream: useStream,
+                signal: abort.signal,
+            });
+        } catch (e) {
+            _abortController = null;
+            throw e;
+        }
+
+        let text = '';
+        let reasoning = null;
+        let reasoningStartMs = null;
+        let reasoningDone = false;
+
+        const isGen = typeof asyncGeneratorFn === 'function' ||
+            (asyncGeneratorFn != null && typeof asyncGeneratorFn[Symbol.asyncIterator] === 'function') ||
+            (asyncGeneratorFn != null && typeof asyncGeneratorFn.next === 'function');
+
+        if (!isGen) {
+            const value = asyncGeneratorFn;
+            if (typeof value === 'string') {
+                text = value.trim();
+            } else {
+                text = (value?.text || value?.content || value?.message?.content || '').trim();
+                reasoning = value?.state?.reasoning || value?.reasoning || null;
+            }
+            _abortController = null;
+            return { text, reasoning };
+        }
+
+        const gen = typeof asyncGeneratorFn === 'function' ? asyncGeneratorFn() : asyncGeneratorFn;
+
+        try {
+            while (true) {
+                if (abort.signal.aborted) { _abortController = null; return null; }
+                const { value, done } = await gen.next();
+                if (done) break;
+
+                text = value.text || '';
+                const newReasoning = value.state?.reasoning || null;
+
+                if (newReasoning) {
+                    if (reasoningStartMs === null) reasoningStartMs = performance.now();
+                    reasoning = newReasoning;
+                }
+                if (text && !reasoningDone && reasoning) {
+                    reasoningDone = true;
+                }
+
+                if (typeof onChunk === 'function') {
+                    const reasoningMs = reasoningStartMs !== null ? performance.now() - reasoningStartMs : null;
+                    onChunk(text, reasoning, reasoningMs, reasoningDone);
+                }
+            }
+        } catch (e) {
+            _abortController = null;
+            if (e?.message === 'userStopped' || abort.signal.aborted) return null;
+            throw e;
+        }
+
+        _abortController = null;
+        return { text: text.trim(), reasoning };
+    }
+
+    function callGenerate(session, settings, pendingText, onChunk) {
+        if (settings.connectionSource === 'profile' && settings.connectionProfileId) {
+            return withConnectionProfile(settings.connectionProfileId, () => doCallGenerate(session, settings, pendingText, onChunk));
+        }
+        return doCallGenerate(session, settings, pendingText, onChunk);
+    }
+
     // ─── Init ────────────────────────────────────────────────────────────────────
 
     async function init() {
@@ -6582,7 +7524,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
                 if (html) container.insertAdjacentHTML('beforeend', html);
             } catch (e) {}
         }
-        restoreWindowState(); attachWindowListeners(); setupSettingsHandlers(); setupLorebookManagerListeners(); setupSettingsPanelListeners(); setupChatPickerListeners();
+        restoreWindowState(); attachWindowListeners(); setupSettingsHandlers(); setupLorebookManagerListeners(); setupSettingsPanelListeners(); setupChatPickerListeners(); setupChangelogListeners();
         
         const s = getSettings();
         
@@ -6617,6 +7559,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         }
         
         setupHotkey(); setupGhostHotkey(); addWandButton();
+        checkChangelogAutoShow();
 
         window.addEventListener('message', e => {
             if (!e.data || typeof e.data !== 'object') return;

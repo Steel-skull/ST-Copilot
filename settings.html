@@ -102,6 +102,10 @@
                         </div>
                         <label style="margin-top:10px; font-size:11px; color:#888; display:block; margin-bottom:4px">Max Response Tokens</label>
                         <input id="scp-max-tokens" type="number" class="text_pole" placeholder="2048" min="64" max="32768" />
+                        <label class="checkbox_label" style="margin-top:10px">
+                            <input id="scp-force-streaming" type="checkbox" />
+                            <span>Force Streaming <span style="font-size:10px;opacity:.6">(ignore ST's stream toggle)</span></span>
+                        </label>
                     </div>
                 </div>
 
@@ -117,6 +121,7 @@
                             <label class="checkbox_label"><input id="scp-include-anote" type="checkbox" /><span>Include Author's Note</span></label>
                             <label class="checkbox_label"><input id="scp-include-charcard" type="checkbox" /><span>Include Character Card</span></label>
                             <label class="checkbox_label"><input id="scp-include-persona" type="checkbox" /><span>Include User Persona</span></label>
+                            <label class="checkbox_label"><input id="scp-apply-regex" type="checkbox" /><span>Apply Regex Scripts to context</span></label>
                         </div>
                         <label style="margin-top:10px; font-size:11px; color:#888; display:block; margin-bottom:4px">Session History Depth Limit</label>
                         <input id="scp-history-limit" type="number" class="text_pole" placeholder="50" min="1" max="500" />
