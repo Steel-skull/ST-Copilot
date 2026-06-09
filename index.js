@@ -90,7 +90,7 @@
         const ctx = SillyTavern.getContext();
         
         let activeId = null;
-        const nativeSel = document.getElementById('connection_profile');
+        const nativeSel = $('connection_profile');
         if (nativeSel && typeof nativeSel.value === 'string') {
             activeId = nativeSel.value;
         }
@@ -109,7 +109,7 @@
         }
 
         const stEnv = {
-            mainApi: ctx.api_server || document.getElementById('main_api')?.value || 'unknown',
+            mainApi: ctx.api_server || $('main_api')?.value || 'unknown',
             characterId: ctx.characterId,
             chatId: ctx.chatId,
             activeConnectionProfile: activeProfileName,
@@ -1275,9 +1275,9 @@ replacement text
     }
 
     function refreshAltGreetingsPickers() {
-        buildAltGreetingsPicker(document.getElementById('scp-ce-alt-greetings-picker'), false);
-        buildAltGreetingsPicker(document.getElementById('scp-sp-ce-alt-greetings-picker'), false);
-        buildAltGreetingsPicker(document.getElementById('scp-sp-ov-ce-alt-greetings-picker'), true);
+        buildAltGreetingsPicker($('scp-ce-alt-greetings-picker'), false);
+        buildAltGreetingsPicker($('scp-sp-ce-alt-greetings-picker'), false);
+        buildAltGreetingsPicker($('scp-sp-ov-ce-alt-greetings-picker'), true);
     }
 
     function buildCharacterContextBlock(settings) {
@@ -1785,7 +1785,7 @@ replacement text
         };
 
         if (domMap[fieldId]) {
-            const el = document.getElementById(domMap[fieldId]);
+            const el = $(domMap[fieldId]);
             if (el) {
                 el.value = newValue;
                 el.dispatchEvent(new Event('input', { bubbles: true }));
@@ -3152,14 +3152,14 @@ replacement text
     }
 
     function openTextDiffModal(title, originalText, newText) {
-        const modal = document.getElementById('scp-diff-modal');
+        const modal = $('scp-diff-modal');
         if (!modal) return;
         
         const diffLines = computeLineDiff(originalText, newText);
         const titleEl = modal.querySelector('.scp-diff-modal-title');
         if (titleEl) titleEl.textContent = title;
 
-        const body = document.getElementById('scp-diff-body');
+        const body = $('scp-diff-body');
         if (body) body.innerHTML = renderDiffSplit(originalText, newText);
 
         modal.querySelectorAll('[data-diff-tab]').forEach(tab => {
@@ -3245,7 +3245,7 @@ replacement text
     }
 
     function appendLBHistoryEl(msg, afterMsgId = null) {
-        const c = document.getElementById('scp-messages');
+        const c = $('scp-messages');
         if (!c) return;
         c.querySelector('.scp-empty-state')?.remove();
 
@@ -4807,12 +4807,12 @@ replacement text
     }
 
     async function openLorebookManager() {
-        const overlay = document.getElementById('scp-lb-overlay');
+        const overlay = $('scp-lb-overlay');
         if (!overlay) return;
         applyCustomTheme(getSettings().customTheme || THEME_PRESETS.default);
         overlay.style.display = 'flex';
         const s = getSettings();
-        if (document.getElementById('scp-lb-search')) document.getElementById('scp-lb-search').value = _lbSearchQuery;
+        if ($('scp-lb-search')) $('scp-lb-search').value = _lbSearchQuery;
         _wiCache = {};
         await buildLorebookContextBlock(s).catch(() => {});
         await refreshLorebookList().catch(e => console.error(`[${EXT_DISPLAY}] LB list:`, e));
@@ -4820,7 +4820,7 @@ replacement text
     }
 
     function closeLorebookManager() {
-        document.getElementById('scp-lb-overlay').style.display = 'none';
+        $('scp-lb-overlay').style.display = 'none';
     }
 
     function _applyLBBookCheckState(item, name, s) {
@@ -4837,13 +4837,13 @@ replacement text
         // dim entries area when forced state
         const isForced = isSelected || isExcluded;
         if (item.classList.contains('lb-book-open')) {
-            const entriesEl = document.getElementById('scp-lb-entries');
+            const entriesEl = $('scp-lb-entries');
             if (entriesEl) entriesEl.classList.toggle('lb-entries-dimmed', isForced);
         }
     }
 
     async function refreshLorebookList() {
-        const listEl = document.getElementById('scp-lb-book-list');
+        const listEl = $('scp-lb-book-list');
         if (!listEl) return;
 
         const ctx = SillyTavern.getContext();
@@ -4928,19 +4928,19 @@ replacement text
     async function viewLorebookEntries(name) {
         _lbActiveBook = name;
         document.querySelectorAll('.scp-lb-book-item').forEach(el => el.classList.toggle('lb-book-open', el.dataset.name === name));
-        document.getElementById('scp-lb-main-actions').style.display = '';
-        document.getElementById('scp-lb-ctx-legend').style.display = '';
-        document.getElementById('scp-lb-entry-detail').style.display = 'none';
-        document.getElementById('scp-lb-entries').style.display = '';
+        $('scp-lb-main-actions').style.display = '';
+        $('scp-lb-ctx-legend').style.display = '';
+        $('scp-lb-entry-detail').style.display = 'none';
+        $('scp-lb-entries').style.display = '';
         const s = getSettings();
         const isForced = s.lorebookSelectedBooks.includes(name) || (s.lorebookExcludedBooks || []).includes(name);
-        const entriesEl = document.getElementById('scp-lb-entries');
+        const entriesEl = $('scp-lb-entries');
         if (entriesEl) entriesEl.classList.toggle('lb-entries-dimmed', isForced);
         await renderEntryList(name, _lbSearchQuery);
     }
 
     async function renderEntryList(bookName, search = '') {
-        const container = document.getElementById('scp-lb-entries');
+        const container = $('scp-lb-entries');
         if (!container) return;
         const data = await fetchWorldInfoBook(bookName);
         if (!data) { container.innerHTML = '<div class="scp-lb-empty-state">Failed to load lorebook</div>'; return; }
@@ -4959,7 +4959,7 @@ replacement text
                 || (e.key || []).join(' ').toLowerCase().includes(lowerSearch);
         }) : entries;
 
-        const label = document.getElementById('scp-lb-entries-label');
+        const label = $('scp-lb-entries-label');
         if (label) label.textContent = `${getDisplayName(bookName)} — ${filtered.length}${filtered.length !== entries.length ? ` of ${entries.length}` : ''} entr${filtered.length !== 1 ? 'ies' : 'y'}`;
 
         const frag = document.createDocumentFragment();
@@ -4997,7 +4997,7 @@ replacement text
         container.innerHTML = '';
         container.appendChild(frag);
 
-        const ctxEl = document.getElementById('scp-lb-footer-ctx');
+        const ctxEl = $('scp-lb-footer-ctx');
         if (ctxEl) {
             ctxEl.textContent = activeEntryUids.size
                 ? `${activeEntryUids.size} entr${activeEntryUids.size !== 1 ? 'ies' : 'y'} in context`
@@ -5044,15 +5044,15 @@ replacement text
     function showEntryDetail(entry, bookName) {
         _lbEntryDetailEntry = entry;
         _lbEntryDetailBook = bookName;
-        document.getElementById('scp-lb-entry-detail').style.display = 'flex';
-        document.getElementById('scp-lb-entries').style.display = 'none';
+        $('scp-lb-entry-detail').style.display = 'flex';
+        $('scp-lb-entries').style.display = 'none';
 
-        document.getElementById('scp-lb-detail-title').textContent = entry.comment || `Entry #${entry.uid}`;
-        document.getElementById('scp-lb-detail-name').value = entry.comment || '';
-        document.getElementById('scp-lb-detail-triggers').value = (entry.key || []).join(', ');
-        document.getElementById('scp-lb-detail-content').value = entry.content || '';
+        $('scp-lb-detail-title').textContent = entry.comment || `Entry #${entry.uid}`;
+        $('scp-lb-detail-name').value = entry.comment || '';
+        $('scp-lb-detail-triggers').value = (entry.key || []).join(', ');
+        $('scp-lb-detail-content').value = entry.content || '';
 
-        const lbStatus = document.getElementById('scp-lb-detail-lb-status');
+        const lbStatus = $('scp-lb-detail-lb-status');
         if (lbStatus) {
             const updateStatus = () => {
                 lbStatus.textContent = entry.disable ? 'Disabled' : 'Enabled';
@@ -5074,12 +5074,12 @@ replacement text
 
         const s = getSettings();
         const override = (s.lorebookEntryOverrides || {})[getEntryOverrideKey(bookName, entry)];
-        ['scp-lb-inj-default', 'scp-lb-inj-force-on', 'scp-lb-inj-force-off'].forEach(id => document.getElementById(id)?.classList.remove('active'));
-        if (override === true) document.getElementById('scp-lb-inj-force-on')?.classList.add('active');
-        else if (override === false) document.getElementById('scp-lb-inj-force-off')?.classList.add('active');
-        else document.getElementById('scp-lb-inj-default')?.classList.add('active');
+        ['scp-lb-inj-default', 'scp-lb-inj-force-on', 'scp-lb-inj-force-off'].forEach(id => $(id)?.classList.remove('active'));
+        if (override === true) $('scp-lb-inj-force-on')?.classList.add('active');
+        else if (override === false) $('scp-lb-inj-force-off')?.classList.add('active');
+        else $('scp-lb-inj-default')?.classList.add('active');
 
-        const hintEl = document.getElementById('scp-lb-inj-hint');
+        const hintEl = $('scp-lb-inj-hint');
         if (hintEl) {
             const isBookSel = (s.lorebookSelectedBooks ||[]).includes(bookName);
             const isInCtx = _lastActiveEntries.some(e => e.bookName === bookName && e.uid === entry.uid);
@@ -5100,13 +5100,13 @@ replacement text
         if (!data) { toastr.error('Failed to load book', EXT_DISPLAY); return; }
         const entry = data.entries[_lbEntryDetailEntry.uid];
         if (!entry) { toastr.error('Entry not found', EXT_DISPLAY); return; }
-        entry.comment = document.getElementById('scp-lb-detail-name')?.value || '';
-        entry.key = (document.getElementById('scp-lb-detail-triggers')?.value || '').split(',').map(t => t.trim()).filter(Boolean);
-        entry.content = document.getElementById('scp-lb-detail-content')?.value || '';
+        entry.comment = $('scp-lb-detail-name')?.value || '';
+        entry.key = ($('scp-lb-detail-triggers')?.value || '').split(',').map(t => t.trim()).filter(Boolean);
+        entry.content = $('scp-lb-detail-content')?.value || '';
         Object.assign(_lbEntryDetailEntry, entry);
         await saveWorldInfoBook(_lbEntryDetailBook, data);
         toastr.success('Entry saved', EXT_DISPLAY);
-        document.getElementById('scp-lb-detail-title').textContent = entry.comment || `Entry #${entry.uid}`;
+        $('scp-lb-detail-title').textContent = entry.comment || `Entry #${entry.uid}`;
         renderEntryList(_lbEntryDetailBook, _lbSearchQuery);
         updateMsgCount(getCurrentSession());
     }
@@ -5120,8 +5120,8 @@ replacement text
         delete data.entries[_lbEntryDetailEntry.uid];
         await saveWorldInfoBook(_lbEntryDetailBook, data);
         toastr.success('Entry deleted', EXT_DISPLAY);
-        document.getElementById('scp-lb-entry-detail').style.display = 'none';
-        document.getElementById('scp-lb-entries').style.display = '';
+        $('scp-lb-entry-detail').style.display = 'none';
+        $('scp-lb-entries').style.display = '';
         renderEntryList(_lbEntryDetailBook, _lbSearchQuery);
         updateMsgCount(getCurrentSession());
     }
@@ -5153,7 +5153,7 @@ replacement text
     }
 
     function updateLBFooterInfo() {
-        const el = document.getElementById('scp-lb-footer-info');
+        const el = $('scp-lb-footer-info');
         if (!el) return;
         const s = getSettings();
         const count = (s.lorebookSelectedBooks || []).length;
@@ -5168,8 +5168,8 @@ replacement text
     }
 
     function setupLorebookManagerListeners() {
-        document.getElementById('scp-lb-close')?.addEventListener('click', closeLorebookManager);
-        const lbOverlay = document.getElementById('scp-lb-overlay');
+        $('scp-lb-close')?.addEventListener('click', closeLorebookManager);
+        const lbOverlay = $('scp-lb-overlay');
         if (lbOverlay) {
             let _lbOverlayTouchStart = null;
             let _lbMouseDownTarget = null;
@@ -5191,39 +5191,39 @@ replacement text
             });
         }
 
-        const diffModal = document.getElementById('scp-diff-modal');
-        document.getElementById('scp-diff-close')?.addEventListener('click', () => { if (diffModal) diffModal.style.display = 'none'; });
+        const diffModal = $('scp-diff-modal');
+        $('scp-diff-close')?.addEventListener('click', () => { if (diffModal) diffModal.style.display = 'none'; });
         let _diffMouseDown = null;
         diffModal?.addEventListener('mousedown', e => { _diffMouseDown = e.target; });
         diffModal?.addEventListener('click', e => { if (e.target === diffModal && _diffMouseDown === diffModal) diffModal.style.display = 'none'; });
-        document.getElementById('scp-lb-refresh')?.addEventListener('click', async () => {
+        $('scp-lb-refresh')?.addEventListener('click', async () => {
             _wiCache = {};
             await refreshLorebookList();
             if (_lbActiveBook) await renderEntryList(_lbActiveBook, _lbSearchQuery);
         });
 
         let _lbSearchTid = null;
-        document.getElementById('scp-lb-search')?.addEventListener('input', e => {
+        $('scp-lb-search')?.addEventListener('input', e => {
             _lbSearchQuery = e.target.value;
             clearTimeout(_lbSearchTid);
             _lbSearchTid = setTimeout(() => { if (_lbActiveBook) renderEntryList(_lbActiveBook, _lbSearchQuery); }, 200);
         });
 
-        document.getElementById('scp-lb-enable-all')?.addEventListener('click', () => {
+        $('scp-lb-enable-all')?.addEventListener('click', () => {
             if (!_lbActiveBook || !_wiCache[_lbActiveBook]) return;
             const s = getSettings();
             Object.values(_wiCache[_lbActiveBook].entries).forEach(e => { s.lorebookEntryOverrides[getEntryOverrideKey(_lbActiveBook, e)] = true; });
             saveSettings(); renderEntryList(_lbActiveBook, _lbSearchQuery);
             updateMsgCount(getCurrentSession());
         });
-        document.getElementById('scp-lb-disable-all')?.addEventListener('click', () => {
+        $('scp-lb-disable-all')?.addEventListener('click', () => {
             if (!_lbActiveBook || !_wiCache[_lbActiveBook]) return;
             const s = getSettings();
             Object.values(_wiCache[_lbActiveBook].entries).forEach(e => { s.lorebookEntryOverrides[getEntryOverrideKey(_lbActiveBook, e)] = false; });
             saveSettings(); renderEntryList(_lbActiveBook, _lbSearchQuery);
             updateMsgCount(getCurrentSession());
         });
-        document.getElementById('scp-lb-reset-overrides')?.addEventListener('click', async () => {
+        $('scp-lb-reset-overrides')?.addEventListener('click', async () => {
             if (!_lbActiveBook) return;
             const ok = await showCustomDialog({ type: 'confirm', title: 'Reset Overrides', message: `Reset all copilot injection overrides for "${_lbActiveBook}"?` });
             if (!ok) return;
@@ -5232,23 +5232,23 @@ replacement text
             saveSettings(); renderEntryList(_lbActiveBook, _lbSearchQuery);
             updateMsgCount(getCurrentSession());
         });
-        document.getElementById('scp-lb-add-entry')?.addEventListener('click', addNewEntry);
-        document.getElementById('scp-lb-back')?.addEventListener('click', async () => {
-            document.getElementById('scp-lb-entry-detail').style.display = 'none';
-            document.getElementById('scp-lb-entries').style.display = '';
+        $('scp-lb-add-entry')?.addEventListener('click', addNewEntry);
+        $('scp-lb-back')?.addEventListener('click', async () => {
+            $('scp-lb-entry-detail').style.display = 'none';
+            $('scp-lb-entries').style.display = '';
             
             await buildLorebookContextBlock(getSettings());
             if (_lbActiveBook) await renderEntryList(_lbActiveBook, _lbSearchQuery);
         });
-        document.getElementById('scp-lb-detail-save')?.addEventListener('click', saveEntryDetail);
-        document.getElementById('scp-lb-detail-delete')?.addEventListener('click', deleteEntryDetail);
-        document.getElementById('scp-lb-detail-copy')?.addEventListener('click', () => {
-            const c = document.getElementById('scp-lb-detail-content')?.value; if (c) copyText(c);
+        $('scp-lb-detail-save')?.addEventListener('click', saveEntryDetail);
+        $('scp-lb-detail-delete')?.addEventListener('click', deleteEntryDetail);
+        $('scp-lb-detail-copy')?.addEventListener('click', () => {
+            const c = $('scp-lb-detail-content')?.value; if (c) copyText(c);
         });
         ['scp-lb-inj-default', 'scp-lb-inj-force-on', 'scp-lb-inj-force-off'].forEach(id => {
-            document.getElementById(id)?.addEventListener('click', () => {
+            $(id)?.addEventListener('click', () => {
                 if (!_lbEntryDetailEntry || !_lbEntryDetailBook) return;
-                const val = document.getElementById(id)?.dataset.val;
+                const val = $(id)?.dataset.val;
                 const s = getSettings();
                 if (!s.lorebookEntryOverrides) s.lorebookEntryOverrides = {};
                 const key = getEntryOverrideKey(_lbEntryDetailBook, _lbEntryDetailEntry);
@@ -5256,8 +5256,8 @@ replacement text
                 else s.lorebookEntryOverrides[key] = val === 'true';
                 
                 saveSettings();
-                ['scp-lb-inj-default', 'scp-lb-inj-force-on', 'scp-lb-inj-force-off'].forEach(bid => document.getElementById(bid)?.classList.remove('active'));
-                document.getElementById(id)?.classList.add('active');
+                ['scp-lb-inj-default', 'scp-lb-inj-force-on', 'scp-lb-inj-force-off'].forEach(bid => $(bid)?.classList.remove('active'));
+                $(id)?.classList.add('active');
                 showEntryDetail(_lbEntryDetailEntry, _lbEntryDetailBook);
                 updateMsgCount(getCurrentSession());
             });
@@ -5390,7 +5390,7 @@ replacement text
     function _updateDirtyDots() {
         const configDot = '<span class="scp-save-dirty-dot"></span>';
         ['scp-profile-save', 'scp-sp-profile-save'].forEach(id => {
-            const btn = document.getElementById(id); if (!btn) return;
+            const btn = $(id); if (!btn) return;
             btn.querySelectorAll('.scp-save-dirty-dot').forEach(d => d.remove());
             if (_configDirty) btn.insertAdjacentHTML('beforeend', configDot);
         });
@@ -5901,22 +5901,22 @@ replacement text
 
     function updateSessionOverrideIndicator() {
         const has = hasSessionOverrides();
-        const dot = document.getElementById('scp-sp-override-dot');
+        const dot = $('scp-sp-override-dot');
         if (dot) dot.style.display = has ? '' : 'none';
-        const gearDot = document.getElementById('scp-gear-ov-dot');
+        const gearDot = $('scp-gear-ov-dot');
         if (gearDot) gearDot.style.display = has ? '' : 'none';
-        const btn = document.getElementById('scp-ext-settings-btn');
+        const btn = $('scp-ext-settings-btn');
         if (btn) btn.classList.toggle('scp-has-overrides', has);
         updateSPOverrideIndicators();
-        const info = document.getElementById('scp-sp-footer-info');
+        const info = $('scp-sp-footer-info');
         if (info) {
             const ov = getSessionOverrides();
             const count = Object.keys(ov).length;
             info.textContent = count ? `${count} session override${count !== 1 ? 's' : ''} active` : '';
         }
         const ov = getSessionOverrides();
-        const depthSlider = document.getElementById('scp-depth-slider');
-        const depthVal = document.getElementById('scp-depth-val');
+        const depthSlider = $('scp-depth-slider');
+        const depthVal = $('scp-depth-val');
         const hasDepthOv = 'contextDepth' in ov;
         if (depthSlider) depthSlider.classList.toggle('scp-slider-overridden', hasDepthOv);
         if (depthVal) depthVal.classList.toggle('scp-depth-val-overridden', hasDepthOv);
@@ -6530,7 +6530,7 @@ replacement text
         ];
 
         sliders.forEach(item => {
-            const el = document.getElementById(item.id);
+            const el = $(item.id);
             if (el) {
                 if (parseInt(el.max) !== maxVal) {
                     el.max = maxVal;
@@ -6539,7 +6539,7 @@ replacement text
                 const renderVal = Math.min(maxVal, parseInt(item.setting ?? 15));
                 el.value = renderVal;
                 
-                const valEl = document.getElementById(item.valId);
+                const valEl = $(item.valId);
                 if (valEl) {
                     valEl.textContent = renderVal;
                 }
@@ -6801,7 +6801,7 @@ replacement text
         } else {
             profileId = ctx.extensionSettings?.connectionManager?.selectedProfile;
             if (!profileId) {
-                const domSelect = document.getElementById('connection_profiles');
+                const domSelect = $('connection_profiles');
                 if (domSelect && domSelect.value) {
                     profileId = domSelect.value;
                 }
@@ -6818,7 +6818,7 @@ replacement text
                 if (typeof window.getGeneratingApi === 'function') {
                     activeProfile.api = window.getGeneratingApi();
                 } else {
-                    const mainApi = ctx.main_api || ctx.mainApi || document.getElementById('main_api')?.value;
+                    const mainApi = ctx.main_api || ctx.mainApi || $('main_api')?.value;
                     if (mainApi === 'openai') {
                         activeProfile.api = ctx.chatCompletionSettings?.chat_completion_source || 'openai';
                     } else if (mainApi === 'textgenerationwebui') {
@@ -6834,7 +6834,7 @@ replacement text
                 } else if (typeof ctx.getChatCompletionModel === 'function') {
                     activeProfile.model = ctx.getChatCompletionModel();
                 } else {
-                    const sel = document.getElementById(`model_${activeProfile.api}_select`) || document.querySelector('select[id^="model_"]:visible');
+                    const sel = $(`model_${activeProfile.api}_select`) || document.querySelector('select[id^="model_"]:visible');
                     if (sel && sel.value) {
                         activeProfile.model = sel.value;
                     }
@@ -6854,17 +6854,17 @@ replacement text
             let autoStream = false;
             try {
                 const profileObj = profiles.find(p => p.id === profileId);
-                const api = profileObj?.api || ctx.main_api || document.getElementById('main_api')?.value;
+                const api = profileObj?.api || ctx.main_api || $('main_api')?.value;
                 
                 if (['openai', 'claude', 'google', 'scale'].includes(api)) {
-                    autoStream = ctx.chatCompletionSettings?.stream_openai ?? !!document.getElementById('stream_toggle')?.checked;
+                    autoStream = ctx.chatCompletionSettings?.stream_openai ?? !!$('stream_toggle')?.checked;
                 } else if (api === 'textgenerationwebui' || api === 'kobold') {
-                    autoStream = ctx.textCompletionSettings?.streaming ?? !!document.getElementById('stream_toggle')?.checked;
+                    autoStream = ctx.textCompletionSettings?.streaming ?? !!$('stream_toggle')?.checked;
                 } else {
-                    autoStream = !!document.getElementById('stream_toggle')?.checked;
+                    autoStream = !!$('stream_toggle')?.checked;
                 }
             } catch (err) {
-                autoStream = !!document.getElementById('stream_toggle')?.checked;
+                autoStream = !!$('stream_toggle')?.checked;
             }
             useStream = autoStream;
         }
@@ -7023,8 +7023,8 @@ replacement text
     ];
 
     function renderQuickPromptsBar() {
-        const bar = document.getElementById('scp-qp-bar');
-        const toggleBtn = document.getElementById('scp-qp-toggle-btn');
+        const bar = $('scp-qp-bar');
+        const toggleBtn = $('scp-qp-toggle-btn');
         if (!bar) return;
         const s = getSettings();
         const prompts = s.quickPrompts || [];
@@ -7038,7 +7038,7 @@ replacement text
             btn.title = truncTitle;
             btn.innerHTML = `<span class="scp-qp-icon">${escHtml(qp.icon || '⚡')}</span><span class="scp-qp-label">${escHtml(qp.label || '')}</span>`;
             btn.addEventListener('click', () => {
-                const input = document.getElementById('scp-input');
+                const input = $('scp-input');
                 if (!input) return;
                 input.value = qp.text;
                 autoResize(input);
@@ -7579,19 +7579,19 @@ replacement text
 
     function updatePickBtnState() {
         const picked = getPickedChatIndices();
-        const btn = document.getElementById('scp-pick-btn');
-        const badge = document.getElementById('scp-pick-badge');
+        const btn = $('scp-pick-btn');
+        const badge = $('scp-pick-badge');
         const isActive = picked.length > 0;
         btn?.classList.toggle('active', isActive);
         if (badge) { badge.style.display = isActive ? '' : 'none'; badge.textContent = picked.length; }
-        const depthSlider = document.getElementById('scp-depth-slider');
-        const depthVal = document.getElementById('scp-depth-val');
+        const depthSlider = $('scp-depth-slider');
+        const depthVal = $('scp-depth-val');
         depthSlider?.classList.toggle('scp-slider-overridden', isActive);
         depthVal?.classList.toggle('scp-depth-val-overridden', isActive);
     }
 
     function openChatPicker() {
-        const overlay = document.getElementById('scp-picker-overlay');
+        const overlay = $('scp-picker-overlay');
         if (!overlay) return;
         applyCustomTheme(getSettings().customTheme || THEME_PRESETS.default);
         _pickerLastIdx = -1;
@@ -7600,12 +7600,12 @@ replacement text
     }
 
     function closeChatPicker() {
-        const overlay = document.getElementById('scp-picker-overlay');
+        const overlay = $('scp-picker-overlay');
         if (overlay) overlay.style.display = 'none';
     }
 
     function renderPickerMessages() {
-        const body = document.getElementById('scp-picker-body');
+        const body = $('scp-picker-body');
         if (!body) return;
         const ctx = SillyTavern.getContext();
         const msgs = ctx.chat || [];
@@ -7727,23 +7727,23 @@ replacement text
     }
 
     function _updatePickerCountEl(count) {
-        const el = document.getElementById('scp-picker-count');
+        const el = $('scp-picker-count');
         if (!el) return;
         const n = count !== undefined ? count : document.querySelectorAll('#scp-picker-body .scp-picker-row.selected').length;
         el.textContent = `${n} selected`;
     }
 
     function setupChatPickerListeners() {
-        const overlay = document.getElementById('scp-picker-overlay');
+        const overlay = $('scp-picker-overlay');
         if (!overlay) return;
 
         let _mouseDownTarget = null;
         overlay.addEventListener('mousedown', e => { _mouseDownTarget = e.target; });
         overlay.addEventListener('click', e => { if (e.target === overlay && _mouseDownTarget === overlay) closeChatPicker(); });
 
-        document.getElementById('scp-picker-close')?.addEventListener('click', closeChatPicker);
+        $('scp-picker-close')?.addEventListener('click', closeChatPicker);
 
-        document.getElementById('scp-picker-all')?.addEventListener('click', () => {
+        $('scp-picker-all')?.addEventListener('click', () => {
             document.querySelectorAll('#scp-picker-body .scp-picker-row').forEach(r => {
                 r.classList.add('selected');
                 r.querySelector('.scp-picker-cb')?.classList.add('checked');
@@ -7751,7 +7751,7 @@ replacement text
             _updatePickerCountEl();
         });
 
-        document.getElementById('scp-picker-invert')?.addEventListener('click', () => {
+        $('scp-picker-invert')?.addEventListener('click', () => {
             document.querySelectorAll('#scp-picker-body .scp-picker-row').forEach(r => {
                 const s = r.classList.toggle('selected');
                 r.querySelector('.scp-picker-cb')?.classList.toggle('checked', s);
@@ -7759,7 +7759,7 @@ replacement text
             _updatePickerCountEl();
         });
 
-        document.getElementById('scp-picker-clear')?.addEventListener('click', () => {
+        $('scp-picker-clear')?.addEventListener('click', () => {
             document.querySelectorAll('#scp-picker-body .scp-picker-row').forEach(r => {
                 r.classList.remove('selected');
                 r.querySelector('.scp-picker-cb')?.classList.remove('checked');
@@ -7767,7 +7767,7 @@ replacement text
             _updatePickerCountEl();
         });
 
-        document.getElementById('scp-picker-apply')?.addEventListener('click', () => {
+        $('scp-picker-apply')?.addEventListener('click', () => {
             const rows = document.querySelectorAll('#scp-picker-body .scp-picker-row');
             const indices = [];
             rows.forEach(r => { if (r.classList.contains('selected')) indices.push(parseInt(r.dataset.idx)); });
@@ -7802,9 +7802,9 @@ replacement text
         const templates = ['window', 'lorebook_manager', 'settings_overlay', 'chat_picker'];
         await Promise.all(templates.map(loadAndInject));
 
-        windowEl = document.getElementById(WIN_ID);
-        iconEl = document.getElementById(ICON_ID);
-        modalEl = document.getElementById(MODAL_ID);
+        windowEl = $(WIN_ID);
+        iconEl = $(ICON_ID);
+        modalEl = $(MODAL_ID);
 
         if (iconEl && iconEl.parentElement !== document.body) {
             document.body.appendChild(iconEl);
@@ -8169,7 +8169,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
             starBtn.title = nowStarred ? 'Unstar' : 'Star message';
             starBtn.classList.toggle('starred', nowStarred);
             wrap.classList.toggle('scp-msg-starred', nowStarred);
-            if (document.getElementById('scp-fav-panel')?.style.display !== 'none') renderFavoritesPanel();
+            if ($('scp-fav-panel')?.style.display !== 'none') renderFavoritesPanel();
         });
         actions.appendChild(starBtn);
         if (isStarred) wrap.classList.add('scp-msg-starred');
@@ -8320,9 +8320,9 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
             if (!cursorEl) {
                 cursorEl = document.createElement('span');
                 cursorEl.className = 'scp-stream-cursor';
-                const bar = document.getElementById('scp-thinking-bar');
+                const bar = $('scp-thinking-bar');
                 if (bar) bar.style.display = 'flex';
-                document.getElementById('scp-thinking-text') && (document.getElementById('scp-thinking-text').textContent = 'Streaming…');
+                $('scp-thinking-text') && ($('scp-thinking-text').textContent = 'Streaming…');
             }
             if (streamContentEl) {
                 const { content: disp } = getDisplayContent(text, settings);
@@ -8806,7 +8806,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
                         await new Promise(r => setTimeout(r, 0));
                         
                         const settings = getEffectiveSettings();
-                        const currentInput = document.getElementById('scp-input')?.value || '';
+                        const currentInput = $('scp-input')?.value || '';
                         
                         const processedAtts = await _processAttachmentsBeforeSend(_pendingAttachments, true);
                         const messages = await assembleMessages(session, settings, currentInput, processedAtts);
@@ -9064,27 +9064,27 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
 
     function openSearch() {
         _searchOpen = true;
-        const bar = document.getElementById('scp-search-bar');
+        const bar = $('scp-search-bar');
         if (bar) {
             bar.classList.add('scp-search-open');
             requestAnimationFrame(() => {
-                const inp = document.getElementById('scp-search-input');
+                const inp = $('scp-search-input');
                 if (inp) { inp.focus(); inp.select(); }
             });
         }
-        document.getElementById('scp-search-btn')?.classList.add('active');
+        $('scp-search-btn')?.classList.add('active');
     }
 
     function closeSearch() {
         _searchOpen = false;
         _searchWholeWord = false;
-        document.getElementById('scp-search-bar')?.classList.remove('scp-search-open');
-        document.getElementById('scp-search-btn')?.classList.remove('active');
-        document.getElementById('scp-search-word')?.classList.remove('active');
+        $('scp-search-bar')?.classList.remove('scp-search-open');
+        $('scp-search-btn')?.classList.remove('active');
+        $('scp-search-word')?.classList.remove('active');
         clearSearchHighlights();
         _searchMatches = [];
         _searchIdx = -1;
-        const inp = document.getElementById('scp-search-input');
+        const inp = $('scp-search-input');
         if (inp) inp.value = '';
         _searchQuery = '';
         updateSearchCount();
@@ -9104,7 +9104,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
     }
 
     function updateSearchCount() {
-        const el = document.getElementById('scp-search-count');
+        const el = $('scp-search-count');
         if (!el) return;
         el.textContent = (_searchMatches.length && _searchQuery)
             ? `${_searchIdx + 1}/${_searchMatches.length}`
@@ -9186,7 +9186,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         _searchIdx = -1;
         const q = _searchQuery.trim();
         if (!q) { updateSearchCount(); return; }
-        const container = document.getElementById('scp-messages');
+        const container = $('scp-messages');
         if (!container) return;
         _searchMatches = _applyHighlightsInRoot(container);
         if (_searchMatches.length) {
@@ -9245,7 +9245,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
                 session.messages.push(placeholder);
                 streamMsgId = placeholder.id;
 
-                const c = document.getElementById('scp-messages');
+                const c = $('scp-messages');
                 c?.querySelector('.scp-empty-state')?.remove();
                 streamMsgEl = createMsgEl(placeholder, handleCopy, handleEdit, handleDelete, handleMessageRegen);
                 c?.appendChild(streamMsgEl);
@@ -9269,8 +9269,8 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
                 cursorEl = document.createElement('span');
                 cursorEl.className = 'scp-stream-cursor';
 
-                const bar = document.getElementById('scp-thinking-bar');
-                const thinkingText = document.getElementById('scp-thinking-text');
+                const bar = $('scp-thinking-bar');
+                const thinkingText = $('scp-thinking-text');
                 if (bar) bar.style.display = 'flex';
                 if (thinkingText) thinkingText.textContent = 'Streaming…';
             }
@@ -9405,7 +9405,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
                 return;
             }
             
-            const inputEl = document.getElementById('scp-input');
+            const inputEl = $('scp-input');
             if (inputEl && inputEl.value.trim() === '' && userText) {
                 inputEl.value = userText;
                 autoResize(inputEl);
@@ -9462,8 +9462,8 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
             if (!cursorEl) {
                 cursorEl = document.createElement('span');
                 cursorEl.className = 'scp-stream-cursor';
-                const bar = document.getElementById('scp-thinking-bar');
-                const thinkingText = document.getElementById('scp-thinking-text');
+                const bar = $('scp-thinking-bar');
+                const thinkingText = $('scp-thinking-text');
                 if (bar) bar.style.display = 'flex';
                 if (thinkingText) thinkingText.textContent = 'Streaming…';
             }
@@ -9785,7 +9785,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
                 s2.windowBg = id;
                 saveSettings();
                 
-                const allContainers = [document.getElementById('scp-bg-settings'), document.getElementById('scp-sp-bg-settings')].filter(Boolean);
+                const allContainers = [$('scp-bg-settings'), $('scp-sp-bg-settings')].filter(Boolean);
                 allContainers.forEach(c => buildBackgroundSettingsUI(c));
                 applyWindowBackground();
             };
@@ -9809,7 +9809,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
                 renderDropdown();
                 updateCustomActions();
                 
-                const otherContainers = [document.getElementById('scp-sound-settings'), document.getElementById('scp-sp-sound-settings')].filter(c => c && c !== container);
+                const otherContainers = [$('scp-sound-settings'), $('scp-sp-sound-settings')].filter(c => c && c !== container);
                 otherContainers.forEach(c => buildSoundSettingsUI(c));
             }
         });
@@ -9827,7 +9827,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
             getSettings().completionSound = typeSel.value;
             saveSettings();
             updateCustomActions();
-            const otherContainers = [document.getElementById('scp-sound-settings'), document.getElementById('scp-sp-sound-settings')].filter(c => c && c !== container);
+            const otherContainers = [$('scp-sound-settings'), $('scp-sp-sound-settings')].filter(c => c && c !== container);
             otherContainers.forEach(c => buildSoundSettingsUI(c));
         });
 
@@ -9866,7 +9866,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         volSlider.addEventListener('change', () => { 
             getSettings().completionSoundVolume = parseInt(volSlider.value); 
             saveSettings(); 
-            const otherContainers2 = [document.getElementById('scp-sound-settings'), document.getElementById('scp-sp-sound-settings')].filter(c => c && c !== container);
+            const otherContainers2 = [$('scp-sound-settings'), $('scp-sp-sound-settings')].filter(c => c && c !== container);
             otherContainers2.forEach(c => buildSoundSettingsUI(c));
         });
         
@@ -10024,7 +10024,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
 
     async function openInspector() {
         const sess = getCurrentSession(); const settings = getEffectiveSettings();
-        const inputEl = document.getElementById('scp-input');
+        const inputEl = $('scp-input');
         const pendingText = inputEl ? inputEl.value.trim() : '';
         const processedAtts = await _processAttachmentsBeforeSend(_pendingAttachments, true);
         
@@ -10462,7 +10462,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
                 s2.windowBg = id;
                 saveSettings();
                 
-                const allContainers = [document.getElementById('scp-bg-settings'), document.getElementById('scp-sp-bg-settings')].filter(Boolean);
+                const allContainers = [$('scp-bg-settings'), $('scp-sp-bg-settings')].filter(Boolean);
                 allContainers.forEach(c => buildBackgroundSettingsUI(c));
                 applyWindowBackground();
             };
@@ -10483,7 +10483,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
                 s2.customBackgrounds[id] = { name: 'URL Background', dataUrl: url.trim(), isVideo, fit: 'cover' };
                 s2.windowBg = id;
                 saveSettings();
-                const allContainers = [document.getElementById('scp-bg-settings'), document.getElementById('scp-sp-bg-settings')].filter(Boolean);
+                const allContainers = [$('scp-bg-settings'), $('scp-sp-bg-settings')].filter(Boolean);
                 allContainers.forEach(c => buildBackgroundSettingsUI(c));
                 applyWindowBackground();
             }
@@ -10502,7 +10502,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
             if (newName && newName.trim()) {
                 s.customBackgrounds[val].name = newName.trim();
                 saveSettings();
-                const allContainers = [document.getElementById('scp-bg-settings'), document.getElementById('scp-sp-bg-settings')].filter(Boolean);
+                const allContainers = [$('scp-bg-settings'), $('scp-sp-bg-settings')].filter(Boolean);
                 allContainers.forEach(c => buildBackgroundSettingsUI(c));
             }
         });
@@ -10521,7 +10521,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
             delete s2.customBackgrounds[val];
             s2.windowBg = 'none';
             saveSettings();
-            const allContainers = [document.getElementById('scp-bg-settings'), document.getElementById('scp-sp-bg-settings')].filter(Boolean);
+            const allContainers = [$('scp-bg-settings'), $('scp-sp-bg-settings')].filter(Boolean);
             allContainers.forEach(c => buildBackgroundSettingsUI(c));
             applyWindowBackground();
         });
@@ -10555,7 +10555,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
             if (s.windowBg !== 'none' && s.customBackgrounds[s.windowBg]) {
                 s.customBackgrounds[s.windowBg].fit = fitSel.value;
                 saveSettings();
-                const allContainers = [document.getElementById('scp-bg-settings'), document.getElementById('scp-sp-bg-settings')].filter(Boolean);
+                const allContainers = [$('scp-bg-settings'), $('scp-sp-bg-settings')].filter(Boolean);
                 allContainers.forEach(c => { const s = c.querySelector('select[id$="fit-sel"]'); if(s) s.value = fitSel.value; });
                 applyWindowBackground();
             }
@@ -10587,7 +10587,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         dimSlider.addEventListener('input', () => { dimVal.textContent = `${dimSlider.value}%`; });
         dimSlider.addEventListener('change', () => {
             getSettings().windowBgDim = parseInt(dimSlider.value); saveSettings();
-            const allContainers = [document.getElementById('scp-bg-settings'), document.getElementById('scp-sp-bg-settings')].filter(Boolean);
+            const allContainers = [$('scp-bg-settings'), $('scp-sp-bg-settings')].filter(Boolean);
             allContainers.forEach(c => { const s = c.querySelector('input[type="range"]'); if(s && s !== dimSlider) { s.value = dimSlider.value; s.nextElementSibling.textContent = `${dimSlider.value}%`; } });
             applyWindowBackground();
         });
@@ -10610,7 +10610,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
             getSettings().windowBg = typeSel.value;
             saveSettings();
             updateVisibility();
-            const allContainers = [document.getElementById('scp-bg-settings'), document.getElementById('scp-sp-bg-settings')].filter(Boolean);
+            const allContainers = [$('scp-bg-settings'), $('scp-sp-bg-settings')].filter(Boolean);
             allContainers.forEach(c => buildBackgroundSettingsUI(c));
             applyWindowBackground();
         });
@@ -10625,7 +10625,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         windowEl.style.removeProperty('--scp-bg-image');
         windowEl.classList.remove('scp-has-bg');
         
-        let mediaEl = document.getElementById('scp-bg-media');
+        let mediaEl = $('scp-bg-media');
 
         if (bgId === 'none' || !s.customBackgrounds || !s.customBackgrounds[bgId]) {
             if (mediaEl) mediaEl.remove();
@@ -10664,7 +10664,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
     }
 
     function _setupAttachButton() {
-        const btn = document.getElementById('scp-attach-btn');
+        const btn = $('scp-attach-btn');
         if (!btn) return;
         btn.addEventListener('click', () => {
             const inp = document.createElement('input');
@@ -10698,7 +10698,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
     }
 
     function _setupBgUpload(btnId, inputId) {
-        const btn = document.getElementById(btnId);
+        const btn = $(btnId);
         if (!btn) return;
         btn.addEventListener('click', () => {
             const inp = document.createElement('input');
@@ -10712,7 +10712,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
                 if (url) {
                     getSettings().windowBgUrl = url;
                     saveSettings();
-                    const urlInput = document.getElementById(inputId);
+                    const urlInput = $(inputId);
                     if (urlInput) urlInput.value = url;
                     applyWindowBackground();
                     _syncBgToOverlay();
@@ -10726,7 +10726,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
 
     function applyCustomTheme(theme) {
         if (!theme) return;
-        const targets = [windowEl, iconEl, document.getElementById('scp-lb-overlay'), document.getElementById('scp-diff-modal'), document.getElementById('scp-settings-overlay'), document.getElementById('scp-picker-overlay')].filter(Boolean);
+        const targets = [windowEl, iconEl, $('scp-lb-overlay'), $('scp-diff-modal'), $('scp-settings-overlay'), $('scp-picker-overlay')].filter(Boolean);
         const s = getSettings();
         
         for (const [key, cssVar] of Object.entries(THEME_CSS_MAP)) {
@@ -10910,7 +10910,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         _ghostModeActive = enabled;
         if (!windowEl) return;
         const s = getSettings();
-        const ghostBtn = document.getElementById('scp-ghost-btn');
+        const ghostBtn = $('scp-ghost-btn');
 
         if (enabled) {
             const opacity = Math.max(15, Math.min(50, s.ghostModeOpacity ?? 15)) / 100;
@@ -10992,12 +10992,12 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
             
             if (!_copilotActive) return;
             
-            const win = document.getElementById(WIN_ID);
+            const win = $(WIN_ID);
             if (!win || win.style.display === 'none') return;
             
             e.preventDefault();
             e.stopPropagation();
-            if (_searchOpen) { document.getElementById('scp-search-input')?.focus(); }
+            if (_searchOpen) { $('scp-search-input')?.focus(); }
             else openSearch();
         };
         document.addEventListener('keydown', _searchHotkeyHandler, true);
@@ -11591,7 +11591,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
                 saveSettings();
                 _markDirty('theme');
                 if (isColorKey) {
-                    if (cssVar) [windowEl, document.getElementById('scp-lb-overlay'), document.getElementById('scp-diff-modal')]
+                    if (cssVar) [windowEl, $('scp-lb-overlay'), $('scp-diff-modal')]
                         .filter(Boolean).forEach(t => t.style.setProperty(cssVar, val));
                     preview.style.background = val;
                     preview.style.display = val ? '' : 'none';
@@ -11599,15 +11599,15 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
                     clearTimeout(_fontDebounce);
                     _fontDebounce = setTimeout(() => {
                         const fontVal = val.trim();
-                        const targets = [windowEl, document.getElementById('scp-lb-overlay'),
-                            document.getElementById('scp-diff-modal'), document.getElementById('scp-settings-overlay'),
-                            document.getElementById('scp-picker-overlay')].filter(Boolean);
+                        const targets = [windowEl, $('scp-lb-overlay'),
+                            $('scp-diff-modal'), $('scp-settings-overlay'),
+                            $('scp-picker-overlay')].filter(Boolean);
                         targets.forEach(t => fontVal
                             ? t.style.setProperty('--scp-font', fontVal)
                             : t.style.removeProperty('--scp-font'));
                     }, 600);
                 } else {
-                    if (cssVar) [windowEl, document.getElementById('scp-lb-overlay'), document.getElementById('scp-diff-modal')]
+                    if (cssVar) [windowEl, $('scp-lb-overlay'), $('scp-diff-modal')]
                         .filter(Boolean).forEach(t => t.style.setProperty(cssVar, val));
                 }
                 if (input.value !== val) input.value = val;
@@ -11681,17 +11681,17 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         };
         const gId = gIdMap[key];
         if (gId) {
-            const gEl = document.getElementById(gId);
+            const gEl = $(gId);
             if (gEl) {
                 if (gEl.type === 'checkbox') gEl.checked = !!val;
                 else gEl.value = val ?? '';
             }
             if (key === 'connectionSource') {
-                const gPg = document.getElementById('scp-sp-global-profile-group');
+                const gPg = $('scp-sp-global-profile-group');
                 if (gPg) gPg.style.display = val === 'profile' ? '' : 'none';
             }
             if (key === 'contextDepth') {
-                const gDv = document.getElementById('scp-sp-depth-val');
+                const gDv = $('scp-sp-depth-val');
                 if (gDv) gDv.textContent = val ?? 15;
             }
         }
@@ -11735,7 +11735,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
 
         const ovId = ovIdMap[key];
         if (ovId) {
-            const ovEl = document.getElementById(ovId);
+            const ovEl = $(ovId);
             if (ovEl) {
                 if (ovEl.type === 'checkbox') {
                     if (key.startsWith('charField_')) {
@@ -11748,16 +11748,16 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
                 else ovEl.value = eff[key] ?? '';
             }
             if (key === 'connectionSource') {
-                const pg = document.getElementById('scp-sp-ov-profile-group');
+                const pg = $('scp-sp-ov-profile-group');
                 if (pg) pg.style.display = eff.connectionSource === 'profile' ? '' : 'none';
             }
             if (key === 'contextDepth') {
-                const dv = document.getElementById('scp-sp-ov-depth-val');
+                const dv = $('scp-sp-ov-depth-val');
                 if (dv) dv.textContent = eff.contextDepth ?? 15;
             }
             
             if (key === 'charField_alternate_greetings') {
-                const picker = document.getElementById('scp-sp-ov-ce-alt-greetings-picker');
+                const picker = $('scp-sp-ov-ce-alt-greetings-picker');
                 if (picker) {
                     picker.style.display = ovEl && ovEl.checked ? '' : 'none';
                     refreshAltGreetingsPickers();
@@ -11840,7 +11840,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
 
         const wand = $('scp-wand-btn');
         if (wand) wand.style.display = s.enabled ? '' : 'none';
-        buildBackgroundSettingsUI(document.getElementById('scp-bg-settings'));
+        buildBackgroundSettingsUI($('scp-bg-settings'));
 
         const pickerLinesEl = $('scp-picker-lines');
         if (pickerLinesEl) pickerLinesEl.value = s.pickerPreviewLines ?? 1;
@@ -11960,8 +11960,8 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
                 const v = parseInt(opSlider.value);
                 getSettings().opacity = v; saveSettings();
                 if (!_ghostModeActive && windowEl) windowEl.style.opacity = (v / 100).toString();
-                const spOpSlider = document.getElementById('scp-sp-opacity-slider');
-                const spOpVal = document.getElementById('scp-sp-opacity-val');
+                const spOpSlider = $('scp-sp-opacity-slider');
+                const spOpVal = $('scp-sp-opacity-val');
                 if (spOpSlider) spOpSlider.value = v;
                 if (spOpVal) spOpVal.textContent = `${v}%`;
             });
@@ -11978,8 +11978,8 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
                 const v = parseInt(ghOp.value);
                 getSettings().ghostModeOpacity = v; saveSettings();
                 if (_ghostModeActive && windowEl) windowEl.style.opacity = (v / 100).toString();
-                const spGhOp = document.getElementById('scp-sp-ghost-opacity');
-                const spGhOpVal = document.getElementById('scp-sp-ghost-opacity-val');
+                const spGhOp = $('scp-sp-ghost-opacity');
+                const spGhOpVal = $('scp-sp-ghost-opacity-val');
                 if (spGhOp) spGhOp.value = v;
                 if (spGhOpVal) spGhOpVal.textContent = `${v}%`;
             });
@@ -12033,7 +12033,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
                 if (!s.charEditFields) s.charEditFields = {};
                 s.charEditFields[fieldKey] = el.checked;
                 saveSettings(); updateMsgCount(getCurrentSession());
-                const ovEl = document.getElementById(`scp-sp-ce-${fieldKey.replace(/_/g, '-')}`);
+                const ovEl = $(`scp-sp-ce-${fieldKey.replace(/_/g, '-')}`);
                 if (ovEl) ovEl.checked = el.checked;
                 _markDirty('config');
             });
@@ -12048,7 +12048,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         bGCharFieldST('scp-ce-authors-note', 'authors_note');
         bGCharFieldST('scp-ce-alt-greetings', 'alternate_greetings');
         $('scp-ce-alt-greetings')?.addEventListener('change', () => {
-            const picker = document.getElementById('scp-ce-alt-greetings-picker');
+            const picker = $('scp-ce-alt-greetings-picker');
             if (picker) { picker.style.display = getSettings().charEditFields?.alternate_greetings ? '' : 'none'; refreshAltGreetingsPickers(); }
         });
 
@@ -12220,7 +12220,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
             onChatChanged();
             toastr.success('Sessions cleared.', EXT_DISPLAY);
         };
-        document.getElementById('scp-clear-sessions')?.addEventListener('click', handleClearAllSessions);
+        $('scp-clear-sessions')?.addEventListener('click', handleClearAllSessions);
 
         updateProfilesList();
         buildThemeEditor();
@@ -12231,7 +12231,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
             lbAiStEl.checked = !!getSettings().lorebookAIManageEnabled;
             lbAiStEl.addEventListener('change', () => {
                 getSettings().lorebookAIManageEnabled = lbAiStEl.checked; saveSettings();
-                const spEl2 = document.getElementById('scp-sp-lb-ai-enabled');
+                const spEl2 = $('scp-sp-lb-ai-enabled');
                 if (spEl2) spEl2.checked = lbAiStEl.checked;
             });
         }
@@ -12244,7 +12244,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
                 updateLBFooterInfo();
                 if (_lbActiveBook) await renderEntryList(_lbActiveBook, _lbSearchQuery);
                 updateMsgCount(getCurrentSession());
-                const spEl2 = document.getElementById('scp-sp-lb-auto-kw');
+                const spEl2 = $('scp-sp-lb-auto-kw');
                 if (spEl2) spEl2.checked = lbKwStEl.checked;
             });
         }
@@ -12271,7 +12271,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
             chatEditEnabledStEl.checked = !!getSettings().chatEditAIEnabled;
             chatEditEnabledStEl.addEventListener('change', () => {
                 getSettings().chatEditAIEnabled = chatEditEnabledStEl.checked; saveSettings();
-                const spEl2 = document.getElementById('scp-sp-chat-edit-enabled');
+                const spEl2 = $('scp-sp-chat-edit-enabled');
                 if (spEl2) spEl2.checked = chatEditEnabledStEl.checked;
                 updateMsgCount(getCurrentSession());
             });
@@ -12284,7 +12284,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
                 getSettings().chatEditPrompt = (val.trim() === DEFAULT_CHAT_EDIT_DIRECTIVE.trim()) ? '' : val;
                 saveSettings();
                 _markDirty('config');
-                const spEl2 = document.getElementById('scp-sp-chat-edit-prompt');
+                const spEl2 = $('scp-sp-chat-edit-prompt');
                 if (spEl2) spEl2.value = chatEditPromptStEl.value;
             });
         }
@@ -12293,7 +12293,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
             if (!ok) return;
             getSettings().chatEditPrompt = ''; saveSettings(); _markDirty('config');
             if (chatEditPromptStEl) chatEditPromptStEl.value = DEFAULT_CHAT_EDIT_DIRECTIVE.trim();
-            const spEl2 = document.getElementById('scp-sp-chat-edit-prompt');
+            const spEl2 = $('scp-sp-chat-edit-prompt');
             if (spEl2) spEl2.value = DEFAULT_CHAT_EDIT_DIRECTIVE.trim();
             toastr.success('Chat edit prompt reset.', EXT_DISPLAY);
         });
@@ -12307,7 +12307,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
             soundUnfocusedEl.addEventListener('change', () => {
                 getSettings().completionSoundOnlyWhenUnfocused = soundUnfocusedEl.checked;
                 saveSettings();
-                const spEl = document.getElementById('scp-sp-sound-unfocused');
+                const spEl = $('scp-sp-sound-unfocused');
                 if (spEl) spEl.checked = soundUnfocusedEl.checked;
             });
         }
@@ -12361,7 +12361,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         bindInput('scp-picker-last-lines', 'pickerPreviewLastLines', Number);
 
         bindSelect('scp-image-mode', 'imageAnalysisMode', () => {
-            const spEl = document.getElementById('scp-sp-image-mode');
+            const spEl = $('scp-sp-image-mode');
             if (spEl) spEl.value = getSettings().imageAnalysisMode;
         });
 
@@ -12371,52 +12371,52 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
     function _syncBgToOverlay() {
         const s = getSettings();
         const bgType = s.windowBgType || 'none';
-        ['scp-sp-bg-type','scp-bg-type'].forEach(id => { const el = document.getElementById(id); if (el) el.value = bgType; });
-        ['scp-sp-bg-url','scp-bg-url'].forEach(id => { const el = document.getElementById(id); if (el) el.value = s.windowBgUrl || ''; });
-        ['scp-sp-bg-dim','scp-bg-dim'].forEach(id => { const el = document.getElementById(id); if (el) el.value = s.windowBgDim ?? 50; });
-        ['scp-sp-bg-dim-val','scp-bg-dim-val'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = `${s.windowBgDim ?? 50}%`; });
+        ['scp-sp-bg-type','scp-bg-type'].forEach(id => { const el = $(id); if (el) el.value = bgType; });
+        ['scp-sp-bg-url','scp-bg-url'].forEach(id => { const el = $(id); if (el) el.value = s.windowBgUrl || ''; });
+        ['scp-sp-bg-dim','scp-bg-dim'].forEach(id => { const el = $(id); if (el) el.value = s.windowBgDim ?? 50; });
+        ['scp-sp-bg-dim-val','scp-bg-dim-val'].forEach(id => { const el = $(id); if (el) el.textContent = `${s.windowBgDim ?? 50}%`; });
         [['scp-sp-bg-url-group','scp-bg-url-group'],['scp-sp-bg-dim-group','scp-bg-dim-group']].forEach(([a,b]) => {
-            [a,b].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = bgType !== 'none' ? '' : 'none'; });
+            [a,b].forEach(id => { const el = $(id); if (el) el.style.display = bgType !== 'none' ? '' : 'none'; });
         });
     }
 
     function openSettingsPanel() {
-        const overlay = document.getElementById('scp-settings-overlay');
+        const overlay = $('scp-settings-overlay');
         if (!overlay) return;
         applyCustomTheme(getSettings().customTheme || THEME_PRESETS.default);
         syncSPFromSettings();
-        buildThemeEditor(document.getElementById('scp-sp-theme-section'));
+        buildThemeEditor($('scp-sp-theme-section'));
         _updateDirtyDots();
-        buildSoundSettingsUI(document.getElementById('scp-sp-sound-settings'));
-        buildQPSettingsUI(document.getElementById('scp-sp-qp-container'));
+        buildSoundSettingsUI($('scp-sp-sound-settings'));
+        buildQPSettingsUI($('scp-sp-qp-container'));
         refreshAltGreetingsPickers();
-        buildQPSetManager(document.getElementById('scp-sp-qp-set-manager'), () => {
-            buildQPSettingsUI(document.getElementById('scp-sp-qp-container'));
+        buildQPSetManager($('scp-sp-qp-set-manager'), () => {
+            buildQPSettingsUI($('scp-sp-qp-container'));
         });
 
         buildPromptPresetManager(
-            document.getElementById('scp-sp-prompt-preset-manager'),
-            () => document.getElementById('scp-sp-ov-sysprompt')?.value || '',
+            $('scp-sp-prompt-preset-manager'),
+            () => $('scp-sp-ov-sysprompt')?.value || '',
             (text) => {
-                const ta = document.getElementById('scp-sp-ov-sysprompt');
+                const ta = $('scp-sp-ov-sysprompt');
                 if (!ta) return;
                 ta.value = text;
                 ta.dispatchEvent(new Event('input', { bubbles: true }));
             }
         );
-        buildPromptPresetManager(document.getElementById('scp-sp-ov-char-preset-manager'), 
-            () => document.getElementById('scp-sp-ov-char-edit-prompt')?.value || '', 
-            (text) => { const ta = document.getElementById('scp-sp-ov-char-edit-prompt'); if(ta) { ta.value = text; ta.dispatchEvent(new Event('input', {bubbles:true})); } }, 
+        buildPromptPresetManager($('scp-sp-ov-char-preset-manager'), 
+            () => $('scp-sp-ov-char-edit-prompt')?.value || '', 
+            (text) => { const ta = $('scp-sp-ov-char-edit-prompt'); if(ta) { ta.value = text; ta.dispatchEvent(new Event('input', {bubbles:true})); } }, 
             'charEditPromptPresets');
 
-        buildPromptPresetManager(document.getElementById('scp-sp-ov-lb-preset-manager'), 
-            () => document.getElementById('scp-sp-ov-lb-manage-prompt')?.value || '', 
-            (text) => { const ta = document.getElementById('scp-sp-ov-lb-manage-prompt'); if(ta) { ta.value = text; ta.dispatchEvent(new Event('input', {bubbles:true})); } }, 
+        buildPromptPresetManager($('scp-sp-ov-lb-preset-manager'), 
+            () => $('scp-sp-ov-lb-manage-prompt')?.value || '', 
+            (text) => { const ta = $('scp-sp-ov-lb-manage-prompt'); if(ta) { ta.value = text; ta.dispatchEvent(new Event('input', {bubbles:true})); } }, 
             'lbEditPromptPresets');
 
-        buildPromptPresetManager(document.getElementById('scp-sp-ov-chat-preset-manager'), 
-            () => document.getElementById('scp-sp-ov-chat-edit-prompt')?.value || '', 
-            (text) => { const ta = document.getElementById('scp-sp-ov-chat-edit-prompt'); if(ta) { ta.value = text; ta.dispatchEvent(new Event('input', {bubbles:true})); } }, 
+        buildPromptPresetManager($('scp-sp-ov-chat-preset-manager'), 
+            () => $('scp-sp-ov-chat-edit-prompt')?.value || '', 
+            (text) => { const ta = $('scp-sp-ov-chat-edit-prompt'); if(ta) { ta.value = text; ta.dispatchEvent(new Event('input', {bubbles:true})); } }, 
             'chatEditPromptPresets');
 
         overlay.style.display = 'flex';
@@ -12426,7 +12426,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
     }
 
     function closeSettingsPanel() {
-        const overlay = document.getElementById('scp-settings-overlay');
+        const overlay = $('scp-settings-overlay');
         if (overlay) overlay.style.display = 'none';
     }
 
@@ -12437,8 +12437,8 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
 
         updateDepthSlidersMax();
 
-        const g = (id, val) => { const el = document.getElementById(id); if (el) el.value = val ?? ''; };
-        const gC = (id, val) => { const el = document.getElementById(id); if (el) el.checked = !!val; };
+        const g = (id, val) => { const el = $(id); if (el) el.value = val ?? ''; };
+        const gC = (id, val) => { const el = $(id); if (el) el.checked = !!val; };
 
         // Global tab
         gC('scp-sp-search-hotkey-enabled', s.searchHotkeyEnabled);
@@ -12451,13 +12451,13 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         gC('scp-sp-wobble-window', s.wobbleWindow !== false);
         gC('scp-sp-changelog-auto', s.changelogAutoShow);
 
-        const spOpSlider = document.getElementById('scp-sp-opacity-slider');
-        const spOpVal = document.getElementById('scp-sp-opacity-val');
+        const spOpSlider = $('scp-sp-opacity-slider');
+        const spOpVal = $('scp-sp-opacity-val');
         if (spOpSlider) spOpSlider.value = s.opacity ?? 95;
         if (spOpVal) spOpVal.textContent = `${s.opacity ?? 95}%`;
 
-        const spGhOp = document.getElementById('scp-sp-ghost-opacity');
-        const spGhOpVal = document.getElementById('scp-sp-ghost-opacity-val');
+        const spGhOp = $('scp-sp-ghost-opacity');
+        const spGhOpVal = $('scp-sp-ghost-opacity-val');
         if (spGhOp) spGhOp.value = s.ghostModeOpacity ?? 15;
         if (spGhOpVal) spGhOpVal.textContent = `${s.ghostModeOpacity ?? 15}%`;
         gC('scp-sp-ghost-hotkey-enabled', s.ghostModeHotkeyEnabled);
@@ -12475,13 +12475,13 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         });
         
         g('scp-sp-conn-source', s.connectionSource ?? 'default');
-        const gCp = document.getElementById('scp-sp-global-profile-group');
+        const gCp = $('scp-sp-global-profile-group');
         if (gCp) gCp.style.display = s.connectionSource === 'profile' ? '' : 'none';
         g('scp-sp-max-tokens', s.maxTokens);
         g('scp-sp-history-limit', s.localHistoryLimit);
         
-        const spDs = document.getElementById('scp-sp-depth-slider');
-        const spDv = document.getElementById('scp-sp-depth-val');
+        const spDs = $('scp-sp-depth-slider');
+        const spDv = $('scp-sp-depth-val');
         if (spDs) spDs.value = s.contextDepth ?? 15;
         if (spDv) spDv.textContent = s.contextDepth ?? 15;
         
@@ -12515,18 +12515,18 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         updateSPConnProfileList();
 
         // ── Session tab ──
-        const ovDs = document.getElementById('scp-sp-ov-depth-slider');
-        const ovDv = document.getElementById('scp-sp-ov-depth-val');
+        const ovDs = $('scp-sp-ov-depth-slider');
+        const ovDv = $('scp-sp-ov-depth-val');
         if (ovDs) ovDs.value = eff.contextDepth ?? 15;
         if (ovDv) ovDv.textContent = eff.contextDepth ?? 15;
 
         g('scp-sp-ov-conn-source', eff.connectionSource ?? 'default');
-        const ovPg = document.getElementById('scp-sp-ov-profile-group');
+        const ovPg = $('scp-sp-ov-profile-group');
         if (ovPg) ovPg.style.display = eff.connectionSource === 'profile' ? '' : 'none';
         
         g('scp-sp-ov-conn-profile', eff.connectionProfileId ?? '');
 
-        const ovi = (id, key) => { const el = document.getElementById(id); if (el) el.value = key in ov ? (ov[key] ?? '') : ''; };
+        const ovi = (id, key) => { const el = $(id); if (el) el.value = key in ov ? (ov[key] ?? '') : ''; };
         ovi('scp-sp-ov-max-tokens', 'maxTokens');
         ovi('scp-sp-ov-history-limit', 'localHistoryLimit');
         ovi('scp-sp-ov-reasoning-trim', 'reasoningTrimStrings');
@@ -12552,7 +12552,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         });
 
         const ovCe = (id, k) => {
-            const el = document.getElementById(id);
+            const el = $(id);
             if (el) el.checked = k in ov ? !!ov[k] : !!(s.charEditFields || {})[k.replace('charField_', '')];
         };
         ovCe('scp-sp-ov-ce-tags', 'charField_tags');
@@ -12566,7 +12566,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
 
         // Main ai modules overrides toggles
         const ovC = (id, key) => {
-            const el = document.getElementById(id);
+            const el = $(id);
             if (el) el.checked = key in ov ? !!ov[key] : !!eff[key];
         };
         ovC('scp-sp-ov-char-edit-enabled', 'charEditAIEnabled');
@@ -12574,9 +12574,9 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         ovC('scp-sp-ov-chat-edit-enabled', 'chatEditAIEnabled');
         ovC('scp-sp-ov-lb-auto-kw', 'lorebookAutoKeyword');
 
-        const altGreetingsOvEl = document.getElementById('scp-sp-ov-ce-alt-greetings');
+        const altGreetingsOvEl = $('scp-sp-ov-ce-alt-greetings');
         if (altGreetingsOvEl) {
-            const picker = document.getElementById('scp-sp-ov-ce-alt-greetings-picker');
+            const picker = $('scp-sp-ov-ce-alt-greetings-picker');
             if (picker) {
                 picker.style.display = altGreetingsOvEl.checked ? '' : 'none';
                 refreshAltGreetingsPickers();
@@ -12585,16 +12585,16 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
 
         updateSPOverrideIndicators();
 
-        const spSoundUnf = document.getElementById('scp-sp-sound-unfocused');
+        const spSoundUnf = $('scp-sp-sound-unfocused');
         if (spSoundUnf) spSoundUnf.checked = !!s.completionSoundOnlyWhenUnfocused;
         
-        buildBackgroundSettingsUI(document.getElementById('scp-sp-bg-settings'));
+        buildBackgroundSettingsUI($('scp-sp-bg-settings'));
         
-        const spPl = document.getElementById('scp-sp-picker-lines');
+        const spPl = $('scp-sp-picker-lines');
         if (spPl) spPl.value = s.pickerPreviewLines ?? 1;
-        const spPll = document.getElementById('scp-sp-picker-last-lines');
+        const spPll = $('scp-sp-picker-last-lines');
         if (spPll) spPll.value = s.pickerPreviewLastLines ?? 0;
-        const spIm = document.getElementById('scp-sp-image-mode');
+        const spIm = $('scp-sp-image-mode');
         if (spIm) spIm.value = s.imageAnalysisMode || 'direct';
     }
 
@@ -12612,7 +12612,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         }
 
         selIds.forEach(sid => {
-            const sel = document.getElementById(sid); if (!sel) return;
+            const sel = $(sid); if (!sel) return;
             const isOverride = sid === 'scp-sp-ov-conn-profile';
             const targetVal = isOverride ? (eff.connectionProfileId || '') : (s.connectionProfileId || '');
             sel.innerHTML = '<option value="">-- Select Profile --</option>';
@@ -12627,7 +12627,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
     }
 
     function refreshSPProfilesDropdown() {
-        const sel = document.getElementById('scp-sp-profile-select'); if (!sel) return;
+        const sel = $('scp-sp-profile-select'); if (!sel) return;
         const s = getSettings();
         if (!Object.keys(s.profiles).length) {
             s.profiles['Default'] = { systemPrompt: DEFAULT_SYSTEM_PROMPT, includeSystemPrompt: true, includeAuthorsNote: true, includeCharacterCard: true, includeUserPersonality: true, contextDepth: 15, localHistoryLimit: 50, connectionSource: 'default', connectionProfileId: '', maxTokens: 8200, applyRegexToContext: true };
@@ -12643,14 +12643,14 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
     }
 
     function updateSPBindingSection() {
-        const sel = document.getElementById('scp-sp-profile-select');
-        const section = document.getElementById('scp-sp-binding-section');
+        const sel = $('scp-sp-profile-select');
+        const section = $('scp-sp-binding-section');
         if (!section) return;
         section.style.display = sel?.value ? '' : 'none';
         if (!sel?.value) return;
         const s = getSettings(); const { charId, chatId } = getBindingKey();
-        document.getElementById('scp-sp-bind-char')?.classList.toggle('active', s.profileBindings[`char_${charId}`] === sel.value);
-        document.getElementById('scp-sp-bind-chat')?.classList.toggle('active', s.profileBindings[`chat_${charId}_${chatId}`] === sel.value);
+        $('scp-sp-bind-char')?.classList.toggle('active', s.profileBindings[`char_${charId}`] === sel.value);
+        $('scp-sp-bind-chat')?.classList.toggle('active', s.profileBindings[`chat_${charId}_${chatId}`] === sel.value);
     }
 
     function openExtensionSettings() { openSettingsPanel(); }
@@ -12658,10 +12658,10 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
     // ─── Settings Panel Listeners ────────────────────────────────────────────────
 
     function setupSettingsPanelListeners() {
-        const overlay = document.getElementById('scp-settings-overlay');
+        const overlay = $('scp-settings-overlay');
         if (!overlay) return;
 
-        document.getElementById('scp-sp-close')?.addEventListener('click', closeSettingsPanel);
+        $('scp-sp-close')?.addEventListener('click', closeSettingsPanel);
         let _spMouseDown = null;
         overlay.addEventListener('mousedown', e => { _spMouseDown = e.target; });
         overlay.addEventListener('click', e => { if (e.target === overlay && _spMouseDown === overlay) closeSettingsPanel(); });
@@ -12675,7 +12675,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
                     p.style.display = p.id === `scp-sp-pane-${pane}` ? '' : 'none';
                 });
                 if (pane === 'stats') {
-                    const statsContainer = document.getElementById('scp-sp-stats-container');
+                    const statsContainer = $('scp-sp-stats-container');
                     if (statsContainer) renderStatsPane(statsContainer);
                 }
             });
@@ -12686,7 +12686,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         const saveGlobal = (key, val, cb) => {
             getSettings()[key] = val; saveSettings();
             _markDirty('config');
-            const stEl = document.getElementById({
+            const stEl = $({
                 enabled:'scp-enabled', hotkeyEnabled:'scp-hotkey-enabled', hotkey:'scp-hotkey',
                 searchHotkeyEnabled:'scp-search-hotkey-enabled', searchHotkey:'scp-search-hotkey',
                 floatingIconPersistent:'scp-icon-persistent', connectionSource:'scp-conn-source',
@@ -12712,7 +12712,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
                 else stEl.value = val ?? '';
                 
                 if (key === 'connectionSource') {
-                    const stGroup = document.getElementById('scp-profile-group');
+                    const stGroup = $('scp-profile-group');
                     if (stGroup) stGroup.style.display = val === 'profile' ? '' : 'none';
                 }
             }
@@ -12724,21 +12724,21 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         };
 
         const bGCheck = (spId, key, cb) => {
-            const el = document.getElementById(spId); if (!el) return;
+            const el = $(spId); if (!el) return;
             el.addEventListener('change', () => saveGlobal(key, el.checked, cb));
         };
         const bGInput = (spId, key, toVal, cb) => {
-            const el = document.getElementById(spId); if (!el) return;
+            const el = $(spId); if (!el) return;
             el.addEventListener('input', () => saveGlobal(key, toVal ? toVal(el.value) : el.value, cb));
         };
         const bGSelect = (spId, key, cb) => {
-            const el = document.getElementById(spId); if (!el) return;
+            const el = $(spId); if (!el) return;
             el.addEventListener('change', () => saveGlobal(key, el.value, cb));
         };
 
         bGCheck('scp-sp-enabled', 'enabled', () => {
             const ss = getSettings();
-            const btn = document.getElementById('scp-wand-btn');
+            const btn = $('scp-wand-btn');
             if (btn) btn.style.display = ss.enabled ? '' : 'none';
             if (!ss.enabled) hideWindow();
             updateIconVisibility();
@@ -12758,11 +12758,11 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         bGCheck('scp-sp-icon-persistent', 'floatingIconPersistent', updateIconVisibility);
         bGCheck('scp-sp-wobble-window', 'wobbleWindow');
         bGCheck('scp-sp-changelog-auto', 'changelogAutoShow');
-        document.getElementById('scp-sp-open-changelog')?.addEventListener('click', () => { closeSettingsPanel(); openChangelog(); });
+        $('scp-sp-open-changelog')?.addEventListener('click', () => { closeSettingsPanel(); openChangelog(); });
 
         // Window opacity
-        const spOpSlider = document.getElementById('scp-sp-opacity-slider');
-        const spOpVal = document.getElementById('scp-sp-opacity-val');
+        const spOpSlider = $('scp-sp-opacity-slider');
+        const spOpVal = $('scp-sp-opacity-val');
         if (spOpSlider) {
             spOpSlider.addEventListener('input', () => { if (spOpVal) spOpVal.textContent = `${spOpSlider.value}%`; });
             spOpSlider.addEventListener('change', () => {
@@ -12793,8 +12793,8 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
             });
         });
 
-        const spGhOp = document.getElementById('scp-sp-ghost-opacity');
-        const spGhOpVal = document.getElementById('scp-sp-ghost-opacity-val');
+        const spGhOp = $('scp-sp-ghost-opacity');
+        const spGhOpVal = $('scp-sp-ghost-opacity-val');
         if (spGhOp) {
             spGhOp.addEventListener('input', () => { if (spGhOpVal) spGhOpVal.textContent = `${spGhOp.value}%`; });
             spGhOp.addEventListener('change', () => {
@@ -12806,24 +12806,24 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         }
 
         bGSelect('scp-sp-conn-source', 'connectionSource', v => {
-            const gCp = document.getElementById('scp-sp-global-profile-group');
+            const gCp = $('scp-sp-global-profile-group');
             if (gCp) gCp.style.display = v === 'profile' ? '' : 'none';
             if (v === 'profile') updateSPConnProfileList();
         });
-        document.getElementById('scp-sp-conn-profile')?.addEventListener('mouseenter', updateSPConnProfileList);
-        document.getElementById('scp-sp-conn-profile')?.addEventListener('change', e => saveGlobal('connectionProfileId', e.target.value));
+        $('scp-sp-conn-profile')?.addEventListener('mouseenter', updateSPConnProfileList);
+        $('scp-sp-conn-profile')?.addEventListener('change', e => saveGlobal('connectionProfileId', e.target.value));
 
         bGInput('scp-sp-max-tokens', 'maxTokens', Number);
         bGInput('scp-sp-history-limit', 'localHistoryLimit', Number, () => updateMsgCount(getCurrentSession()));
 
-        const spDs = document.getElementById('scp-sp-depth-slider');
-        const spDv = document.getElementById('scp-sp-depth-val');
+        const spDs = $('scp-sp-depth-slider');
+        const spDv = $('scp-sp-depth-val');
         if (spDs) {
             spDs.addEventListener('input', () => { if (spDv) spDv.textContent = spDs.value; });
             spDs.addEventListener('change', () => {
                 saveGlobal('contextDepth', parseInt(spDs.value), () => updateMsgCount(getCurrentSession()));
-                const stSlider = document.getElementById('scp-depth-slider');
-                const stVal = document.getElementById('scp-depth-val');
+                const stSlider = $('scp-depth-slider');
+                const stVal = $('scp-depth-val');
                 if (stSlider) stSlider.value = spDs.value;
                 if (stVal) stVal.textContent = spDs.value;
             });
@@ -12834,63 +12834,63 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         bGCheck('scp-sp-apply-regex', 'applyRegexToContext');
         bGInput('scp-sp-reasoning-trim', 'reasoningTrimStrings');
 
-        document.getElementById('scp-sp-conn-source')?.addEventListener('change', e => {
+        $('scp-sp-conn-source')?.addEventListener('change', e => {
             const v = e.target.value;
             saveGlobal('connectionSource', v, null);
-            const gCp = document.getElementById('scp-sp-global-profile-group');
+            const gCp = $('scp-sp-global-profile-group');
             if (gCp) gCp.style.display = v === 'profile' ? '' : 'none';
             if (v === 'profile') updateSPConnProfileList();
         });
-        document.getElementById('scp-sp-conn-profile')?.addEventListener('mouseenter', updateSPConnProfileList);
-        document.getElementById('scp-sp-conn-profile')?.addEventListener('change', e => saveGlobal('connectionProfileId', e.target.value, null));
+        $('scp-sp-conn-profile')?.addEventListener('mouseenter', updateSPConnProfileList);
+        $('scp-sp-conn-profile')?.addEventListener('change', e => saveGlobal('connectionProfileId', e.target.value, null));
 
-        const spPrompt = document.getElementById('scp-sp-sysprompt');
+        const spPrompt = $('scp-sp-sysprompt');
         if (spPrompt) spPrompt.addEventListener('input', () => saveGlobal('systemPrompt', spPrompt.value, () => updateMsgCount(getCurrentSession())));
-        document.getElementById('scp-sp-reset-prompt')?.addEventListener('click', async () => {
+        $('scp-sp-reset-prompt')?.addEventListener('click', async () => {
             const ok = await showCustomDialog({ type: 'confirm', title: 'Reset System Prompt', message: 'Reset to default?' });
             if (!ok) return;
             getSettings().systemPrompt = DEFAULT_SYSTEM_PROMPT;
             saveSettings();
             if (spPrompt) spPrompt.value = DEFAULT_SYSTEM_PROMPT;
-            const stPrompt = document.getElementById('scp-sysprompt');
+            const stPrompt = $('scp-sysprompt');
             if (stPrompt) stPrompt.value = DEFAULT_SYSTEM_PROMPT;
             updateMsgCount(getCurrentSession());
             toastr.success('System prompt reset.', EXT_DISPLAY);
         });
 
         bGInput('scp-sp-lb-manage-prompt', 'lorebookManagePrompt');
-        document.getElementById('scp-sp-reset-lb-prompt')?.addEventListener('click', async () => {
+        $('scp-sp-reset-lb-prompt')?.addEventListener('click', async () => {
             const ok = await showCustomDialog({ type: 'confirm', title: 'Reset LB Prompt', message: 'Reset to default?' });
             if (!ok) return;
             getSettings().lorebookManagePrompt = DEFAULT_LB_MANAGE_PROMPT;
             saveSettings();
-            const el = document.getElementById('scp-sp-lb-manage-prompt'); if (el) el.value = DEFAULT_LB_MANAGE_PROMPT;
-            const stEl = document.getElementById('scp-lb-manage-prompt'); if (stEl) stEl.value = DEFAULT_LB_MANAGE_PROMPT;
+            const el = $('scp-sp-lb-manage-prompt'); if (el) el.value = DEFAULT_LB_MANAGE_PROMPT;
+            const stEl = $('scp-lb-manage-prompt'); if (stEl) stEl.value = DEFAULT_LB_MANAGE_PROMPT;
             toastr.success('Lorebook prompt reset.', EXT_DISPLAY);
         });
         bGInput('scp-sp-lb-st-scan-depth', 'lorebookSTScanDepth', Number);
         bGInput('scp-sp-lb-copilot-scan-depth', 'lorebookCopilotScanDepth', Number);
 
         // LB and Auto-Keywords toggles (settings overlay)
-        document.getElementById('scp-sp-lb-ai-enabled')?.addEventListener('change', e => {
+        $('scp-sp-lb-ai-enabled')?.addEventListener('change', e => {
             saveGlobal('lorebookAIManageEnabled', e.target.checked, null);
-            const stEl = document.getElementById('scp-lb-ai-enabled-st');
+            const stEl = $('scp-lb-ai-enabled-st');
             if (stEl) stEl.checked = e.target.checked;
         });
-        document.getElementById('scp-sp-lb-auto-kw')?.addEventListener('change', async e => {
+        $('scp-sp-lb-auto-kw')?.addEventListener('change', async e => {
             saveGlobal('lorebookAutoKeyword', e.target.checked, null);
             const s2 = getSettings();
             await buildLorebookContextBlock(s2);
             updateLBFooterInfo();
             if (_lbActiveBook) await renderEntryList(_lbActiveBook, _lbSearchQuery);
             updateMsgCount(getCurrentSession());
-            const stEl = document.getElementById('scp-lb-auto-kw-st');
+            const stEl = $('scp-lb-auto-kw-st');
             if (stEl) stEl.checked = e.target.checked;
         });
 
         // Character card AI edits
         const bGCharField = (id, fieldKey) => {
-            const el = document.getElementById(id); if (!el) return;
+            const el = $(id); if (!el) return;
             el.addEventListener('change', () => {
                 const s = getSettings();
                 if (!s.charEditFields) s.charEditFields = {};
@@ -12902,7 +12902,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
                     mes_example: 'scp-ce-mes-example', authors_note: 'scp-ce-authors-note',
                     alternate_greetings: 'scp-ce-alt-greetings',
                 };
-                const stEl = document.getElementById(stIdMap[fieldKey]);
+                const stEl = $(stIdMap[fieldKey]);
                 if (stEl) stEl.checked = el.checked;
                 
                 syncOverlayUI('charField_' + fieldKey, el.checked);
@@ -12918,53 +12918,53 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         bGCharField('scp-sp-ce-mes-example', 'mes_example');
         bGCharField('scp-sp-ce-authors-note', 'authors_note');
         bGCharField('scp-sp-ce-alt-greetings', 'alternate_greetings');
-        document.getElementById('scp-sp-ce-alt-greetings')?.addEventListener('change', () => {
-            const picker = document.getElementById('scp-sp-ce-alt-greetings-picker');
+        $('scp-sp-ce-alt-greetings')?.addEventListener('change', () => {
+            const picker = $('scp-sp-ce-alt-greetings-picker');
             if (picker) { picker.style.display = getSettings().charEditFields?.alternate_greetings ? '' : 'none'; refreshAltGreetingsPickers(); }
         });
-        document.getElementById('scp-sp-char-edit-prompt')?.addEventListener('input', e => {
+        $('scp-sp-char-edit-prompt')?.addEventListener('input', e => {
             const val = e.target.value;
             getSettings().charEditPrompt = (val.trim() === DEFAULT_CHAR_EDIT_DIRECTIVE.trim()) ? '' : val;
             saveSettings();
             _markDirty('config');
         });
-        document.getElementById('scp-sp-reset-char-edit-prompt')?.addEventListener('click', async () => {
+        $('scp-sp-reset-char-edit-prompt')?.addEventListener('click', async () => {
             const ok = await showCustomDialog({ type: 'confirm', title: 'Reset Char Edit Prompt', message: 'Reset to built-in default prompt?' });
             if (!ok) return;
             getSettings().charEditPrompt = '';
             saveSettings();
             _markDirty('config');
-            const el = document.getElementById('scp-sp-char-edit-prompt');
+            const el = $('scp-sp-char-edit-prompt');
             if (el) el.value = DEFAULT_CHAR_EDIT_DIRECTIVE.trim();
             toastr.success('Char edit prompt reset to default.', EXT_DISPLAY);
         });
         bGCheck('scp-sp-chat-edit-enabled', 'chatEditAIEnabled', () => {
             updateMsgCount(getCurrentSession());
-            const stEl = document.getElementById('scp-chat-edit-enabled-st');
+            const stEl = $('scp-chat-edit-enabled-st');
             if (stEl) stEl.checked = getSettings().chatEditAIEnabled;
         });
-        document.getElementById('scp-sp-chat-edit-prompt')?.addEventListener('input', e => {
+        $('scp-sp-chat-edit-prompt')?.addEventListener('input', e => {
             const val = e.target.value;
             getSettings().chatEditPrompt = (val.trim() === DEFAULT_CHAT_EDIT_DIRECTIVE.trim()) ? '' : val;
             saveSettings();
             _markDirty('config');
-            const stEl = document.getElementById('scp-chat-edit-prompt-st');
+            const stEl = $('scp-chat-edit-prompt-st');
             if (stEl) stEl.value = val;
         });
-        document.getElementById('scp-sp-reset-chat-edit-prompt')?.addEventListener('click', async () => {
+        $('scp-sp-reset-chat-edit-prompt')?.addEventListener('click', async () => {
             const ok = await showCustomDialog({ type: 'confirm', title: 'Reset Chat Edit Prompt', message: 'Reset to default?' });
             if (!ok) return;
             getSettings().chatEditPrompt = ''; saveSettings(); _markDirty('config');
-            const spEl = document.getElementById('scp-sp-chat-edit-prompt');
+            const spEl = $('scp-sp-chat-edit-prompt');
             if (spEl) spEl.value = DEFAULT_CHAT_EDIT_DIRECTIVE.trim();
-            const stEl = document.getElementById('scp-chat-edit-prompt-st');
+            const stEl = $('scp-chat-edit-prompt-st');
             if (stEl) stEl.value = DEFAULT_CHAT_EDIT_DIRECTIVE.trim();
             toastr.success('Chat edit prompt reset.', EXT_DISPLAY);
         });
 
         // Config profiles
-        document.getElementById('scp-sp-profile-select')?.addEventListener('change', async () => {
-            const sel = document.getElementById('scp-sp-profile-select'); if (!sel?.value) return;
+        $('scp-sp-profile-select')?.addEventListener('change', async () => {
+            const sel = $('scp-sp-profile-select'); if (!sel?.value) return;
             if (isConfigProfileDirty()) {
                 const ok = await showCustomDialog({ type: 'confirm', title: 'Unsaved Configuration', message: 'Unsaved changes in current profile. Switch anyway?' });
                 if (!ok) { sel.value = getSettings().activeProfile || ''; return; }
@@ -12974,8 +12974,8 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
             updateSettingsUI();
             updateSPBindingSection();
         });
-        document.getElementById('scp-sp-profile-save')?.addEventListener('click', async () => {
-            const sel = document.getElementById('scp-sp-profile-select');
+        $('scp-sp-profile-save')?.addEventListener('click', async () => {
+            const sel = $('scp-sp-profile-select');
             let name = sel?.value;
             if (!name) {
                 name = await showCustomDialog({ type: 'prompt', title: 'Save Configuration', message: 'Profile name:', placeholder: 'My Config' });
@@ -12987,18 +12987,18 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
             updateSPBindingSection(); toastr.success(`Saved "${name}"`, EXT_DISPLAY);
             _clearDirty('config');
         });
-        document.getElementById('scp-sp-profile-create')?.addEventListener('click', async () => {
+        $('scp-sp-profile-create')?.addEventListener('click', async () => {
             const name = await showCustomDialog({ type: 'prompt', title: 'New Configuration', message: 'Name:', placeholder: 'New Config' });
             if (!name?.trim()) return;
             const n = name.trim(); const s = getSettings();
             s.profiles[n] = { systemPrompt: DEFAULT_SYSTEM_PROMPT, includeSystemPrompt: true, includeAuthorsNote: true, includeCharacterCard: true, includeUserPersonality: true, contextDepth: 15, localHistoryLimit: 50, connectionSource: 'default', connectionProfileId: '', maxTokens: 8200, applyRegexToContext: true };
             saveSettings(); refreshSPProfilesDropdown(); refreshProfilesDropdown();
             loadProfile(n); syncSPFromSettings(); updateSettingsUI();
-            const sel = document.getElementById('scp-sp-profile-select'); if (sel) sel.value = n;
+            const sel = $('scp-sp-profile-select'); if (sel) sel.value = n;
             updateSPBindingSection(); toastr.success(`Created "${n}"`, EXT_DISPLAY);
         });
-        document.getElementById('scp-sp-profile-duplicate')?.addEventListener('click', async () => {
-            const sel = document.getElementById('scp-sp-profile-select');
+        $('scp-sp-profile-duplicate')?.addEventListener('click', async () => {
+            const sel = $('scp-sp-profile-select');
             if (!sel?.value) return toastr.info('No configuration selected.', EXT_DISPLAY);
             const defaultName = sel.value + ' (Copy)';
             const newName = await showCustomDialog({ type: 'prompt', title: 'Duplicate Configuration', message: 'Name for the new profile:', defaultValue: defaultName });
@@ -13010,11 +13010,11 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
             s2.profiles[n] = JSON.parse(JSON.stringify(p));
             saveSettings(); refreshSPProfilesDropdown(); refreshProfilesDropdown();
             loadProfile(n); syncSPFromSettings(); updateSettingsUI();
-            const newSel = document.getElementById('scp-sp-profile-select'); if (newSel) newSel.value = n;
+            const newSel = $('scp-sp-profile-select'); if (newSel) newSel.value = n;
             updateSPBindingSection(); toastr.success(`Duplicated as "${n}"`, EXT_DISPLAY);
         });
-        document.getElementById('scp-sp-profile-rename')?.addEventListener('click', async () => {
-            const sel = document.getElementById('scp-sp-profile-select'); if (!sel?.value) return;
+        $('scp-sp-profile-rename')?.addEventListener('click', async () => {
+            const sel = $('scp-sp-profile-select'); if (!sel?.value) return;
             const newName = await showCustomDialog({ type: 'prompt', title: 'Rename', message: 'New name:', defaultValue: sel.value });
             if (!newName?.trim() || newName.trim() === sel.value) return;
             const s = getSettings(); const p = s.profiles[sel.value]; if (!p) return;
@@ -13022,11 +13022,11 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
             if (s.activeProfile === sel.value) s.activeProfile = newName.trim();
             for (const k in s.profileBindings) { if (s.profileBindings[k] === sel.value) s.profileBindings[k] = newName.trim(); }
             saveSettings(); refreshSPProfilesDropdown(); refreshProfilesDropdown();
-            const newSel = document.getElementById('scp-sp-profile-select'); if (newSel) newSel.value = newName.trim();
+            const newSel = $('scp-sp-profile-select'); if (newSel) newSel.value = newName.trim();
             updateSPBindingSection(); toastr.success('Renamed.', EXT_DISPLAY);
         });
-        document.getElementById('scp-sp-profile-delete')?.addEventListener('click', async () => {
-            const sel = document.getElementById('scp-sp-profile-select'); if (!sel?.value) return;
+        $('scp-sp-profile-delete')?.addEventListener('click', async () => {
+            const sel = $('scp-sp-profile-select'); if (!sel?.value) return;
             const s = getSettings();
             if (Object.keys(s.profiles).length <= 1) { toastr.warning('Cannot delete the last profile.', EXT_DISPLAY); return; }
             const ok = await showCustomDialog({ type: 'confirm', title: 'Delete Profile', message: `Delete "${sel.value}"?` });
@@ -13034,22 +13034,22 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
             deleteProfile(sel.value); refreshSPProfilesDropdown(); refreshProfilesDropdown();
             updateSPBindingSection(); toastr.success('Deleted.', EXT_DISPLAY);
         });
-        document.getElementById('scp-sp-bind-char')?.addEventListener('click', () => {
-            const sel = document.getElementById('scp-sp-profile-select'); if (!sel?.value) return;
+        $('scp-sp-bind-char')?.addEventListener('click', () => {
+            const sel = $('scp-sp-profile-select'); if (!sel?.value) return;
             const s = getSettings(); const { charId } = getBindingKey(); const key = `char_${charId}`;
             if (s.profileBindings[key] === sel.value) delete s.profileBindings[key];
             else s.profileBindings[key] = sel.value;
             saveSettings(); updateSPBindingSection(); updateBindingSection();
         });
-        document.getElementById('scp-sp-bind-chat')?.addEventListener('click', () => {
-            const sel = document.getElementById('scp-sp-profile-select'); if (!sel?.value) return;
+        $('scp-sp-bind-chat')?.addEventListener('click', () => {
+            const sel = $('scp-sp-profile-select'); if (!sel?.value) return;
             const s = getSettings(); const { charId, chatId } = getBindingKey(); const key = `chat_${charId}_${chatId}`;
             if (s.profileBindings[key] === sel.value) delete s.profileBindings[key];
             else s.profileBindings[key] = sel.value;
             saveSettings(); updateSPBindingSection(); updateBindingSection();
         });
 
-        document.getElementById('scp-sp-download-debug')?.addEventListener('click', dbgDownload);
+        $('scp-sp-download-debug')?.addEventListener('click', dbgDownload);
         const handleClearAllSessions = async () => {
             const ok = await showCustomDialog({ 
                 type: 'confirm', 
@@ -13065,27 +13065,27 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
             onChatChanged();
             toastr.success('Sessions cleared.', EXT_DISPLAY);
         };
-        document.getElementById('scp-sp-clear-sessions')?.addEventListener('click', handleClearAllSessions);
+        $('scp-sp-clear-sessions')?.addEventListener('click', handleClearAllSessions);
 
         // Sound unfocused (overlay)
-        const spSoundUnfocusedEl = document.getElementById('scp-sp-sound-unfocused');
+        const spSoundUnfocusedEl = $('scp-sp-sound-unfocused');
         if (spSoundUnfocusedEl) {
             spSoundUnfocusedEl.checked = !!getSettings().completionSoundOnlyWhenUnfocused;
             spSoundUnfocusedEl.addEventListener('change', () => {
                 getSettings().completionSoundOnlyWhenUnfocused = spSoundUnfocusedEl.checked;
                 saveSettings();
-                const stEl = document.getElementById('scp-sound-unfocused');
+                const stEl = $('scp-sound-unfocused');
                 if (stEl) stEl.checked = spSoundUnfocusedEl.checked;
             });
         }
 
         // Background (overlay)
-        const spBgType = document.getElementById('scp-sp-bg-type');
-        const spBgUrl = document.getElementById('scp-sp-bg-url');
-        const spBgUrlGrp = document.getElementById('scp-sp-bg-url-group');
-        const spBgDim = document.getElementById('scp-sp-bg-dim');
-        const spBgDimGrp = document.getElementById('scp-sp-bg-dim-group');
-        const spBgDimVal = document.getElementById('scp-sp-bg-dim-val');
+        const spBgType = $('scp-sp-bg-type');
+        const spBgUrl = $('scp-sp-bg-url');
+        const spBgUrlGrp = $('scp-sp-bg-url-group');
+        const spBgDim = $('scp-sp-bg-dim');
+        const spBgDimGrp = $('scp-sp-bg-dim-group');
+        const spBgDimVal = $('scp-sp-bg-dim-val');
         if (spBgType) {
             spBgType.value = getSettings().windowBgType || 'none';
             spBgType.addEventListener('change', () => {
@@ -13121,35 +13121,35 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         }
 
         // Picker lines (overlay)
-        const spPickerLines = document.getElementById('scp-sp-picker-lines');
+        const spPickerLines = $('scp-sp-picker-lines');
         if (spPickerLines) {
             spPickerLines.value = getSettings().pickerPreviewLines ?? 1;
             spPickerLines.addEventListener('input', () => {
                 getSettings().pickerPreviewLines = parseInt(spPickerLines.value) || 1;
                 saveSettings();
-                const stEl = document.getElementById('scp-picker-lines');
+                const stEl = $('scp-picker-lines');
                 if (stEl) stEl.value = spPickerLines.value;
             });
         }
-        const spPickerLast = document.getElementById('scp-sp-picker-last-lines');
+        const spPickerLast = $('scp-sp-picker-last-lines');
         if (spPickerLast) {
             spPickerLast.value = getSettings().pickerPreviewLastLines ?? 0;
             spPickerLast.addEventListener('input', () => {
                 getSettings().pickerPreviewLastLines = parseInt(spPickerLast.value) || 0;
                 saveSettings();
-                const stEl = document.getElementById('scp-picker-last-lines');
+                const stEl = $('scp-picker-last-lines');
                 if (stEl) stEl.value = spPickerLast.value;
             });
         }
 
         // Image mode (overlay)
-        const spImgMode = document.getElementById('scp-sp-image-mode');
+        const spImgMode = $('scp-sp-image-mode');
         if (spImgMode) {
             spImgMode.value = getSettings().imageAnalysisMode || 'direct';
             spImgMode.addEventListener('change', () => {
                 getSettings().imageAnalysisMode = spImgMode.value;
                 saveSettings();
-                const stEl = document.getElementById('scp-image-mode');
+                const stEl = $('scp-image-mode');
                 if (stEl) stEl.value = spImgMode.value;
             });
         }
@@ -13201,32 +13201,32 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         }
 
         const bindOvCheck = (spId, key) => {
-            const el = document.getElementById(spId); if (!el) return;
+            const el = $(spId); if (!el) return;
             el.addEventListener('change', () => syncOvClear(key, el.checked));
         };
         const bindOvInput = (spId, key, toVal) => {
-            const el = document.getElementById(spId); if (!el) return;
+            const el = $(spId); if (!el) return;
             el.addEventListener('input', () => {
                 const raw = el.value === '' ? undefined : (toVal ? toVal(el.value) : el.value);
                 syncOvClear(key, raw);
             });
         };
 
-        const ovDs = document.getElementById('scp-sp-ov-depth-slider');
-        const ovDv = document.getElementById('scp-sp-ov-depth-val');
+        const ovDs = $('scp-sp-ov-depth-slider');
+        const ovDv = $('scp-sp-ov-depth-val');
         if (ovDs) {
             ovDs.addEventListener('input', () => { if (ovDv) ovDv.textContent = ovDs.value; });
             ovDs.addEventListener('change', () => syncOvClear('contextDepth', parseInt(ovDs.value)));
         }
 
-        document.getElementById('scp-sp-ov-conn-source')?.addEventListener('change', e => {
+        $('scp-sp-ov-conn-source')?.addEventListener('change', e => {
             syncOvClear('connectionSource', e.target.value);
-            const pg = document.getElementById('scp-sp-ov-profile-group');
+            const pg = $('scp-sp-ov-profile-group');
             if (pg) pg.style.display = e.target.value === 'profile' ? '' : 'none';
             if (e.target.value === 'profile') updateSPConnProfileList();
         });
-        document.getElementById('scp-sp-ov-conn-profile')?.addEventListener('mouseenter', updateSPConnProfileList);
-        document.getElementById('scp-sp-ov-conn-profile')?.addEventListener('change', e => {
+        $('scp-sp-ov-conn-profile')?.addEventListener('mouseenter', updateSPConnProfileList);
+        $('scp-sp-ov-conn-profile')?.addEventListener('change', e => {
             syncOvClear('connectionProfileId', e.target.value);
         });
 
@@ -13237,7 +13237,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         bindOvInput('scp-sp-ov-lb-manage-prompt', 'lorebookManagePrompt');
         bindOvInput('scp-sp-ov-chat-edit-prompt', 'chatEditPrompt');
 
-        const ovPrompt = document.getElementById('scp-sp-ov-sysprompt');
+        const ovPrompt = $('scp-sp-ov-sysprompt');
         if (ovPrompt) ovPrompt.addEventListener('input', () => syncOvClear('systemPrompt', ovPrompt.value || undefined));
 
         bindOvCheck('scp-sp-ov-include-sysprompt', 'includeSystemPrompt');
@@ -13248,8 +13248,8 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         bindOvCheck('scp-sp-ov-chat-edit-enabled', 'chatEditAIEnabled');
         bindOvCheck('scp-sp-ov-ce-alt-greetings', 'charField_alternate_greetings');
         bindOvCheck('scp-sp-ov-lb-auto-kw', 'lorebookAutoKeyword');
-        document.getElementById('scp-sp-ov-ce-alt-greetings')?.addEventListener('change', (e) => {
-            const picker = document.getElementById('scp-sp-ov-ce-alt-greetings-picker');
+        $('scp-sp-ov-ce-alt-greetings')?.addEventListener('change', (e) => {
+            const picker = $('scp-sp-ov-ce-alt-greetings-picker');
             if (picker) { picker.style.display = e.target.checked ? '' : 'none'; refreshAltGreetingsPickers(); }
         });
 
@@ -13310,7 +13310,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
                     chatEditPrompt: ['scp-sp-ov-chat-edit-prompt'],
                 };
                 (elMap[key] || []).forEach(id => {
-                    const el = document.getElementById(id); if (!el) return;
+                    const el = $(id); if (!el) return;
                     if (id.includes('depth-val')) { el.textContent = eff.contextDepth ?? 15; return; }
                     
                     if (el.type === 'checkbox') {
@@ -13324,7 +13324,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
                     else if (el.type === 'range') el.value = eff[key] ?? 15;
                     else if (id === 'scp-sp-ov-conn-source') {
                         el.value = eff.connectionSource ?? 'default';
-                        const pg = document.getElementById('scp-sp-ov-profile-group');
+                        const pg = $('scp-sp-ov-profile-group');
                         if (pg) pg.style.display = el.value === 'profile' ? '' : 'none';
                     }
                     else if (id === 'scp-sp-ov-conn-profile') {
@@ -13347,7 +13347,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
             });
         });
 
-        document.getElementById('scp-sp-reset-all-overrides')?.addEventListener('click', async () => {
+        $('scp-sp-reset-all-overrides')?.addEventListener('click', async () => {
             if (!hasSessionOverrides()) { toastr.info('No session overrides active.', EXT_DISPLAY); return; }
             const ok = await showCustomDialog({ type: 'confirm', title: 'Reset Session Overrides', message: 'Clear all session overrides for this session?' });
             if (!ok) return;
@@ -13368,17 +13368,17 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         setupMessagesScrollTracking();
 
         document.addEventListener('pointerdown', e => {
-            const win = document.getElementById(WIN_ID);
+            const win = $(WIN_ID);
             if (!win || win.style.display === 'none') {
                 _copilotActive = false;
                 return;
             }
             const clickedInside = win.contains(e.target) || 
                                   e.target.closest('.scp-dialog-overlay') ||
-                                  document.getElementById('scp-settings-overlay')?.contains(e.target) ||
-                                  document.getElementById('scp-lb-overlay')?.contains(e.target) ||
-                                  document.getElementById('scp-picker-overlay')?.contains(e.target) ||
-                                  document.getElementById('scp-diff-modal')?.contains(e.target);
+                                  $('scp-settings-overlay')?.contains(e.target) ||
+                                  $('scp-lb-overlay')?.contains(e.target) ||
+                                  $('scp-picker-overlay')?.contains(e.target) ||
+                                  $('scp-diff-modal')?.contains(e.target);
             _copilotActive = !!clickedInside;
         }, true);
 
@@ -13536,7 +13536,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
 
         // Favorites
         $('scp-fav-btn')?.addEventListener('click', () => {
-            const panel = document.getElementById('scp-fav-panel');
+            const panel = $('scp-fav-panel');
             if (panel?.style.display === 'none' || !panel?.style.display) openFavoritesPanel();
             else closeFavoritesPanel();
         });
@@ -13656,8 +13656,8 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
     // ─── Wand Button ─────────────────────────────────────────────────────────────
 
     function addWandButton() {
-        const menu = document.getElementById('extensionsMenu');
-        if (!menu || document.getElementById('scp-wand-btn')) return;
+        const menu = $('extensionsMenu');
+        if (!menu || $('scp-wand-btn')) return;
         const btn = document.createElement('div');
         btn.id = 'scp-wand-btn';
         btn.classList.add('list-group-item', 'flex-container', 'flexGap5');
@@ -13700,15 +13700,15 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
     }
 
     function openChangelog() {
-        const modal = document.getElementById('scp-changelog-modal');
+        const modal = $('scp-changelog-modal');
         if (!modal) return;
-        const body = document.getElementById('scp-changelog-body');
+        const body = $('scp-changelog-body');
         if (body) body.innerHTML = buildChangelogHTML();
         modal.style.display = 'flex';
     }
 
     function closeChangelog() {
-        const modal = document.getElementById('scp-changelog-modal');
+        const modal = $('scp-changelog-modal');
         if (modal) modal.style.display = 'none';
     }
 
@@ -13727,9 +13727,9 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
     }
 
     function setupChangelogListeners() {
-        const modal = document.getElementById('scp-changelog-modal');
+        const modal = $('scp-changelog-modal');
         if (!modal) return;
-        document.getElementById('scp-changelog-close')?.addEventListener('click', closeChangelog);
+        $('scp-changelog-close')?.addEventListener('click', closeChangelog);
         let _mdTarget = null;
         modal.addEventListener('mousedown', e => { _mdTarget = e.target; });
         modal.addEventListener('click', e => { if (e.target === modal && _mdTarget === modal) closeChangelog(); });
@@ -13766,8 +13766,8 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
     }
 
     function renderFavoritesPanel() {
-        const listEl = document.getElementById('scp-fav-list');
-        const emptyEl = document.getElementById('scp-fav-empty');
+        const listEl = $('scp-fav-list');
+        const emptyEl = $('scp-fav-empty');
         if (!listEl) return;
 
         const starredIds = getStarredMessages();
@@ -13837,8 +13837,8 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
     }
 
     function openFavoritesPanel() {
-        const panel = document.getElementById('scp-fav-panel');
-        const btn = document.getElementById('scp-fav-btn');
+        const panel = $('scp-fav-panel');
+        const btn = $('scp-fav-btn');
         if (!panel) return;
         renderFavoritesPanel();
         panel.style.display = 'flex';
@@ -13846,8 +13846,8 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
     }
 
     function closeFavoritesPanel() {
-        const panel = document.getElementById('scp-fav-panel');
-        const btn = document.getElementById('scp-fav-btn');
+        const panel = $('scp-fav-panel');
+        const btn = $('scp-fav-btn');
         if (panel) panel.style.display = 'none';
         btn?.classList.remove('active');
     }
@@ -13944,7 +13944,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
     }
 
     function _renderAttachmentPreviews() {
-        let previewBar = document.getElementById('scp-attachment-bar');
+        let previewBar = $('scp-attachment-bar');
         const inputRow = document.querySelector('.scp-input-row');
         if (!inputRow) return;
 
@@ -14104,7 +14104,7 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         await loadManifestVersion();
         getSettings(); await injectUI();
         const ctx = SillyTavern.getContext();
-        const container = document.getElementById('extensions_settings') || document.getElementById('extensions_settings2');
+        const container = $('extensions_settings') || $('extensions_settings2');
         if (container) {
             try {
                 const html = await ctx.renderExtensionTemplateAsync(__extPath, 'settings');
@@ -14189,9 +14189,9 @@ window.onerror=function(m){window.parent.postMessage({type:'scp-iframe-err',msg:
         };
         [
             windowEl, 
-            document.getElementById('scp-settings-overlay'), 
-            document.getElementById('scp-lb-overlay'), 
-            document.getElementById('scp-picker-overlay')
+            $('scp-settings-overlay'), 
+            $('scp-lb-overlay'), 
+            $('scp-picker-overlay')
         ].filter(Boolean).forEach(el => {
             el.addEventListener('mousedown', preventSpinBug);
             el.addEventListener('mouseup', preventSpinBug);
